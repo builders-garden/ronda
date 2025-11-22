@@ -353,10 +353,10 @@ export const RondaDrawer = ({
                 members.map((member, index) => (
                   <ProfileCard
                     avatar={member.avatar}
-                    key={`${member.name}-${index}`}
+                    key={`${member.name}-${member.avatar}-${index}`}
                     name={member.name}
                     status={member.status}
-                    statusMessage={member.statusMessage ?? ""}
+                    statusMessage={member.statusMessage || ""}
                   />
                 ))
               ) : (
@@ -387,10 +387,10 @@ export const RondaDrawer = ({
                   </h2>
                 </div>
                 <div className="flex w-full flex-col gap-4">
-                  {activities.map((activity) => (
+                  {activities.map((activity, index) => (
                     <div
                       className="flex items-start justify-between gap-2"
-                      key={`${activity.title}-${activity.timestamp}`}
+                      key={`activity-${activity.title}-${activity.timestamp}-${index}`}
                     >
                       <div className="flex items-center gap-3">
                         <div
