@@ -11,7 +11,7 @@ import {
 } from "@lifi/sdk";
 import { getWalletClient, switchChain } from "@wagmi/core";
 import type { Address } from "viem";
-import { basePreconf } from "viem/chains";
+import { celo } from "viem/chains";
 import { env } from "@/lib/env";
 import {
   getTokenBalanceUSDValue,
@@ -27,11 +27,11 @@ createConfig({
       getWalletClient: async () => await getWalletClient(wagmiConfig),
       switchChain: async (_chainId) => {
         let chainId = _chainId;
-        if (![8453].includes(chainId)) {
-          chainId = 8453;
+        if (![42220].includes(chainId)) {
+          chainId = 42220;
         }
         const chain = await switchChain(wagmiConfig, {
-          chainId: chainId as 8453,
+          chainId: chainId as 42220,
         });
         return getWalletClient(wagmiConfig, { chainId: chain.id });
       },
@@ -86,6 +86,6 @@ export const getWalletBalance = async (
 };
 
 export const getETHPriceUSD = async (): Promise<number | null> => {
-  const tokensResponse = await getToken(basePreconf.id, "ETH");
+  const tokensResponse = await getToken(celo.id, "ETH");
   return tokensResponse.priceUSD ? Number(tokensResponse.priceUSD) : null;
 };

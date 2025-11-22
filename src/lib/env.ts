@@ -24,6 +24,7 @@ export const env = createEnv({
     // application general info
     NEXT_PUBLIC_APPLICATION_NAME: z.string().min(1),
     NEXT_PUBLIC_APPLICATION_DESCRIPTION: z.string().min(1),
+    NEXT_PUBLIC_RONDA_FACTORY_ADDRESS: z.string().min(1),
   },
   // For Next.js >= 13.4.4, you only need to destructure client variables:
   experimental__runtimeEnv: {
@@ -38,5 +39,8 @@ export const env = createEnv({
     NEXT_PUBLIC_APPLICATION_NAME: process.env.NEXT_PUBLIC_APPLICATION_NAME,
     NEXT_PUBLIC_APPLICATION_DESCRIPTION:
       process.env.NEXT_PUBLIC_APPLICATION_DESCRIPTION,
+
+    NEXT_PUBLIC_RONDA_FACTORY_ADDRESS:
+      process.env.NEXT_PUBLIC_RONDA_FACTORY_ADDRESS,
   },
 });

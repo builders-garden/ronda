@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { basePreconf } from "viem/chains";
+import { celo } from "viem/chains";
 import { useAccount, useBalance } from "wagmi";
 import { getWalletBalance } from "@/lib/lifi";
 import { useUsdcBalance } from "./use-usdc-balance";
@@ -8,7 +8,7 @@ export const useWalletBalance = () => {
   const { address } = useAccount();
   const { data: ethBalance } = useBalance({
     address,
-    chainId: basePreconf.id,
+    chainId: celo.id,
   });
   const { balance: usdcBalance, isLoading: isLoadingUsdcBalance } =
     useUsdcBalance({
