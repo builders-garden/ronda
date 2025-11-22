@@ -6,6 +6,7 @@ import { cookieToInitialState, WagmiProvider } from "wagmi";
 import { AuthProvider } from "@/contexts/auth-context";
 import { EnvironmentProvider } from "@/contexts/environment-context";
 import { FarcasterProvider } from "@/contexts/farcaster-context";
+import { PageContentProvider } from "@/contexts/page-content-context";
 import { wagmiConfigMiniApp } from "@/lib/wagmi";
 import { ErudaProvider } from "./eruda";
 
@@ -26,7 +27,9 @@ export default function Providers({
           <QueryClientProvider client={queryClient}>
             <FarcasterProvider addMiniAppOnLoad={true}>
               <AuthProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
+                <NuqsAdapter>
+                  <PageContentProvider>{children}</PageContentProvider>
+                </NuqsAdapter>
               </AuthProvider>
             </FarcasterProvider>
           </QueryClientProvider>
