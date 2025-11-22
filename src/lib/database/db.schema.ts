@@ -129,6 +129,59 @@ export const farcaster = sqliteTable("farcaster", {
 });
 
 /**
+ * Groups Table
+ */
+export const groups = sqliteTable("groups", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => ulid()),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  creatorId: text("creator_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  groupOnchainId: text("group_onchain_id").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+/**
+ * Participants Table
+ */
+export const participants = sqliteTable("participants", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => ulid()),
+  groupId: text("group_id")
+    .notNull()
+    .references(() => groups.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  accepted: integer("accepted", { mode: "boolean" }).default(false).notNull(),
+  acceptedAt: integer("accepted_at", { mode: "timestamp_ms" }),
+  paid: integer("paid", { mode: "boolean" }).default(false).notNull(),
+  paidAt: integer("paid_at", { mode: "timestamp_ms" }),
+  contributed: integer("contributed", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
+/**
  * Drizzle Types
  */
 export type Account = typeof account.$inferSelect;
@@ -172,6 +225,25 @@ export const accountRelations = relations(account, ({ one }) => ({
 export const farcasterRelations = relations(farcaster, ({ one }) => ({
   user: one(user, {
     fields: [farcaster.userId],
+    references: [user.id],
+  }),
+}));
+
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  creator: one(user, {
+    fields: [groups.creatorId],
+    references: [user.id],
+  }),
+  participants: many(participants),
+}));
+
+export const participantsRelations = relations(participants, ({ one }) => ({
+  group: one(groups, {
+    fields: [participants.groupId],
+    references: [groups.id],
+  }),
+  user: one(user, {
+    fields: [participants.userId],
     references: [user.id],
   }),
 }));
