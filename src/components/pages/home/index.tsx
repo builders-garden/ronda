@@ -1,13 +1,12 @@
 "use client";
 
-import { Camera, Plus, Star, UsersRound } from "lucide-react";
+import { Plus, Star, UsersRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { RondaStatus } from "@/lib/enum";
+import { CircleCard } from "@/components/pages/circles/components/circle-card";
 import { CreateRondaModal } from "./components/create-ronda-modal";
 import { HomeHeader } from "./components/home-header";
 import { InvitationCard } from "./components/invitation-card";
-import { RondaCard } from "./components/ronda-card";
 import { SummaryCard } from "./components/summary-card";
 
 export default function HomePage() {
@@ -17,123 +16,132 @@ export default function HomePage() {
     <>
       <motion.div
         animate={{ opacity: 1 }}
-        className="relative flex w-full flex-col items-center justify-start gap-5 px-4 py-22"
+        className="relative flex w-full flex-col items-center justify-start bg-white pb-24"
         exit={{ opacity: 0 }}
         initial={{ opacity: 0 }}
         transition={{ duration: 0.2, ease: "easeInOut" }}
       >
         <HomeHeader />
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-3">
-          <SummaryCard
-            bgColor="bg-primary/10"
-            icon={Camera}
-            iconColor="text-primary"
-            label="Total Saved"
-            value="$2,450"
-          />
-          <SummaryCard
-            bgColor="bg-success/10"
-            icon={UsersRound}
-            iconColor="text-success"
-            label="Active Rondas"
-            value="3"
-          />
-          <SummaryCard
-            bgColor="bg-warning/10"
-            icon={Star}
-            iconColor="text-warning"
-            label="Reliability score"
-            value="98%"
-          />
-        </div>
-
-        {/* Create New Ronda Button */}
-        <motion.button
-          className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-linear-to-b from-primary to-primary/80 p-4 drop-shadow-sm"
-          onClick={() => setIsCreateModalOpen(true)}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="flex size-6 items-center justify-center rounded-full bg-foreground">
-            <Plus className="size-3.5 text-primary" strokeWidth={3.3} />
-          </div>
-          <div className="flex flex-col items-start justify-center">
-            <span className="font-semibold text-sm text-white">
-              Create New Ronda
-            </span>
-            <span className="font-light text-white text-xs">
-              Start a new savings group
-            </span>
-          </div>
-        </motion.button>
-
-        {/* Invitations */}
-        <div className="flex w-full flex-col items-center justify-start gap-3">
-          <div className="flex w-full items-center justify-between">
-            <h2 className="font-semibold text-lg text-muted">Invitations</h2>
-            <motion.button
-              className="cursor-pointer text-primary text-sm hover:underline"
-              whileTap={{ scale: 0.98 }}
-            >
-              View All
-            </motion.button>
-          </div>
-          <div className="flex w-full flex-col items-center justify-start gap-2">
-            <InvitationCard
-              avatars={["", "", ""]}
-              memberCount={6}
-              name="Gym Buddies Circle"
-              weeklyAmount="$75"
+        {/* Main Content */}
+        <div className="flex w-full flex-col items-center justify-start gap-8 px-6 pt-8">
+          {/* Summary Cards */}
+          <div className="grid w-full grid-cols-3 gap-4">
+            <SummaryCard
+              bgColor="bg-[rgba(244,244,245,0.5)]"
+              icon={Wallet}
+              iconColor="text-zinc-900"
+              label="Total Saved"
+              value="$2,450"
             />
-            <InvitationCard
-              avatars={["", "", "", ""]}
-              memberCount={10}
-              name="Neighborhood Group"
-              weeklyAmount="$120"
+            <SummaryCard
+              bgColor="bg-[rgba(123,143,245,0.1)]"
+              icon={UsersRound}
+              iconColor="text-[#7b8ff5]"
+              label="Active Circles"
+              value="3"
+            />
+            <SummaryCard
+              bgColor="bg-[rgba(245,158,66,0.1)]"
+              icon={Star}
+              iconColor="text-[#f59e42]"
+              label="Reliability"
+              value="98%"
             />
           </div>
-        </div>
 
-        {/* Your Rondas */}
-        <div className="flex w-full flex-col items-center justify-start gap-3">
-          <div className="flex w-full items-center justify-between">
-            <h2 className="font-semibold text-2xl text-muted">Your Rondas</h2>
-            <motion.button
-              className="cursor-pointer text-primary text-sm hover:underline"
-              whileTap={{ scale: 0.98 }}
-            >
-              View All
-            </motion.button>
-          </div>
+          {/* Create New Circle Button */}
+          <motion.button
+            className="flex h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-[24px] bg-zinc-900"
+            onClick={() => setIsCreateModalOpen(true)}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Plus className="size-5 text-white" strokeWidth={2.5} />
+            <span className="font-semibold text-[16px] text-white tracking-[-0.4px]">
+              Create New Circle
+            </span>
+          </motion.button>
+
+          {/* Your Circles */}
           <div className="flex w-full flex-col items-center justify-start gap-4">
-            <RondaCard
-              avatars={["", "", "", ""]}
-              currentWeek={4}
-              memberCount={12}
-              name="College Friends"
-              status={RondaStatus.DEPOSIT_DUE}
-              totalWeeks={7}
-              weeklyAmount="$50"
-            />
-            <RondaCard
-              avatars={["", "", "", ""]}
-              currentWeek={4}
-              memberCount={8}
-              name="Work Friends Circle"
-              status={RondaStatus.ACTIVE}
-              totalWeeks={5}
-              weeklyAmount="$100"
-            />
-            <RondaCard
-              avatars={["", "", "", "", ""]}
-              currentWeek={5}
-              memberCount={5}
-              name="Family Circle"
-              status={RondaStatus.COMPLETED}
-              totalWeeks={5}
-              weeklyAmount="$200"
-            />
+            <div className="flex w-full items-center justify-between">
+              <h2 className="font-bold text-[20px] text-zinc-950 tracking-[-0.5px]">
+                Your Circles
+              </h2>
+              <motion.button
+                className="cursor-pointer font-semibold text-[14px] text-zinc-900 tracking-[-0.35px] hover:underline"
+                whileTap={{ scale: 0.98 }}
+              >
+                View All
+              </motion.button>
+            </div>
+            <div className="flex w-full flex-col items-center justify-start gap-4">
+              <CircleCard
+                avatars={["", "", "", ""]}
+                currentPot="$600"
+                currentWeek={8}
+                memberCount={12}
+                name="Weekend Savers"
+                nextPayout="Dec 28"
+                status="deposit_due"
+                totalWeeks={12}
+                weeklyAmount="$50"
+              />
+              <CircleCard
+                avatars={["", "", "", ""]}
+                currentPot="$800"
+                currentWeek={8}
+                lastPayout="Dec 20"
+                memberCount={8}
+                name="Family Goals"
+                status="completed"
+                totalWeeks={8}
+                weeklyAmount="$100"
+              />
+              <CircleCard
+                avatars={["", "", "", ""]}
+                currentPot="$750"
+                currentWeek={6}
+                memberCount={10}
+                name="College Fund"
+                nextPayout="Jan 8"
+                status="active"
+                totalWeeks={10}
+                weeklyAmount="$75"
+              />
+            </div>
+          </div>
+
+          {/* Invitations */}
+          <div className="flex w-full flex-col items-center justify-start gap-4">
+            <div className="flex w-full items-center justify-between">
+              <h2 className="font-bold text-[20px] text-zinc-950 tracking-[-0.5px]">
+                Invitations
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className="flex size-6 items-center justify-center rounded-full bg-red-500">
+                  <span className="font-bold text-[12px] text-white">2</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex w-full flex-col items-center justify-start gap-4">
+              <InvitationCard
+                avatars={["", "", ""]}
+                dueDate="Jan 15"
+                memberCount={15}
+                name="Friends Holiday Fund"
+                totalWeeks={12}
+                weeklyAmount="$80"
+              />
+              <InvitationCard
+                avatars={["", "", ""]}
+                dueDate="Jan 22"
+                memberCount={6}
+                name="Fitness Challenge Pool"
+                totalWeeks={8}
+                weeklyAmount="$30"
+              />
+            </div>
           </div>
         </div>
       </motion.div>

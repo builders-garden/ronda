@@ -15,19 +15,24 @@ export function SummaryCard({
   label,
   value,
   iconColor = "text-gray-600",
-  bgColor = "bg-gray-100",
+  bgColor = "bg-[rgba(244,244,245,0.5)]",
 }: SummaryCardProps) {
   return (
-    <Card className="flex items-center justify-center rounded-md bg-white p-3 drop-shadow-xs">
-      <div className="flex items-center justify-between">
-        <span className="text-muted-foreground text-xs">{label}</span>
-        <div className={cn("rounded-full p-2", iconColor, bgColor)}>
-          <Icon className="size-4.5" />
-        </div>
+    <Card className="flex h-[175px] w-full flex-col items-center justify-start rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-0 shadow-none">
+      <div
+        className={cn(
+          "mt-5 flex size-11 items-center justify-center rounded-2xl",
+          bgColor
+        )}
+      >
+        <Icon className={cn("size-5", iconColor)} strokeWidth={2} />
       </div>
-      <div className="flex w-full items-center justify-start">
-        <span className="font-semibold text-lg text-muted">{value}</span>
-      </div>
+      <p className="mt-4 font-medium text-[#6f7780] text-[11px] uppercase tracking-[0.275px]">
+        {label}
+      </p>
+      <p className="mt-1 font-bold text-[24px] text-zinc-950 tracking-[-0.6px]">
+        {value}
+      </p>
     </Card>
   );
 }
