@@ -69,11 +69,11 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} size-full antialiased`}>
+      <body
+        className={`${inter.className} size-full bg-background antialiased`}
+      >
         <Providers cookie={cookie}>
-          <main className="flex w-full flex-col gap-0 text-black">
-            {children}
-          </main>
+          {children}
           <Suspense>
             <Toaster />
           </Suspense>

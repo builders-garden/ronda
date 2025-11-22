@@ -3,18 +3,21 @@ import Image from "next/image";
 
 export function HomeHeader() {
   return (
-    <div className="flex w-full items-center justify-between px-6 py-4">
-      <div className="flex items-center gap-2">
+    <div className="fixed top-0 right-0 left-0 z-50 flex h-[64px] w-full items-center justify-between border-border border-b bg-foreground px-6">
+      <div className="flex items-center justify-start gap-2">
         <Image
           alt="RONDA Logo"
-          height={32}
+          height={36}
           src="/images/ronda_logo.svg"
-          width={32}
+          width={36}
         />
-        <span className="font-bold text-black text-xl">RONDA</span>
+        <span className="font-extrabold text-muted text-xl">RONDA</span>
       </div>
-      <button className="rounded-full p-2 hover:bg-gray-100" type="button">
-        <Bell className="size-6 text-black" />
+      <button
+        className="cursor-pointer rounded-full p-2 hover:bg-gray-100"
+        type="button"
+      >
+        <Bell className="size-6 text-muted" strokeWidth={2} />
       </button>
     </div>
   );

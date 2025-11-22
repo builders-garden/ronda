@@ -17,7 +17,7 @@ export const Website = ({ page }: { page?: string }) => {
   )}${page ? `/${encodeURIComponent(page)}` : ""}`;
 
   return (
-    <main className="h-screen w-full overflow-y-auto bg-[#FCF5EC] p-4 text-black sm:p-0">
+    <main className="h-screen w-full overflow-y-auto bg-[#FCF5EC] p-4 text-muted sm:p-0">
       <div className="mx-auto mb-32 flex min-h-full w-full max-w-7xl flex-col items-center justify-center gap-4 py-4 sm:flex-row sm:gap-24 sm:py-12">
         {/* Content Section */}
         <div className="flex flex-col gap-4 sm:gap-12">
@@ -36,7 +36,7 @@ export const Website = ({ page }: { page?: string }) => {
                 </h1>
               </div>
             </div>
-            <p className="text-black/80 text-xs sm:text-lg">
+            <p className="text-muted/80 text-xs sm:text-lg">
               {env.NEXT_PUBLIC_APPLICATION_NAME}
             </p>
           </div>
@@ -47,7 +47,7 @@ export const Website = ({ page }: { page?: string }) => {
               "bg-linear-to-br from-black/5 to-transparent dark:from-white/8 dark:to-transparent",
               "backdrop-blur-md backdrop-saturate-150",
               "border border-black/5 dark:border-white/8",
-              "text-black/90 dark:text-white",
+              "text-muted/90 dark:text-white",
               "shadow-xs",
               "translate-z-0 will-change-transform",
               "before:pointer-events-none before:absolute before:inset-0 before:bg-linear-to-br before:from-black/2 before:to-black/1 before:opacity-0 before:transition-opacity dark:before:from-white/3 dark:before:to-white/1",
@@ -55,7 +55,7 @@ export const Website = ({ page }: { page?: string }) => {
             )}
           >
             <h1 className="font-semibold text-lg sm:text-2xl">How to use</h1>
-            <ul className="list-inside text-black/80 text-xs sm:text-lg">
+            <ul className="list-inside text-muted/80 text-xs sm:text-lg">
               <li>1. Open the app on Farcaster or Base</li>
               <li>2. Enjoy :)</li>
             </ul>
@@ -99,10 +99,10 @@ export const Website = ({ page }: { page?: string }) => {
             </div>
           </div>
           <div className="flex w-full items-center justify-center">
-            <p className="text-black text-xs sm:text-base">
+            <p className="text-muted text-xs sm:text-base">
               Built with ❤️ by{" "}
               <Link
-                className="font-bold text-black"
+                className="font-bold text-muted"
                 href={new URL("https://builders.garden")}
                 target="_blank"
               >

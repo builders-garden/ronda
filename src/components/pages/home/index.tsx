@@ -19,47 +19,55 @@ export default function HomePage() {
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="flex h-full w-full flex-col overflow-y-auto bg-white pb-20"
+      className="relative flex w-full flex-col items-center justify-start gap-5 px-4 py-22"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
     >
       <HomeHeader />
 
-      <div className="flex gap-3 px-6 pb-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-3">
         <SummaryCard
+          bgColor="bg-primary/10"
           icon={Camera}
-          iconColor="text-blue-600"
+          iconColor="text-primary"
           label="Total Saved"
           value="$2,450"
         />
         <SummaryCard
+          bgColor="bg-success/10"
           icon={UsersRound}
-          iconColor="text-green-600"
+          iconColor="text-success"
           label="Active Rondas"
           value="3"
         />
         <SummaryCard
+          bgColor="bg-warning/10"
           icon={Star}
-          iconColor="text-yellow-600"
+          iconColor="text-warning"
           label="Reliability score"
           value="98%"
         />
       </div>
 
-      <div className="px-6 pb-6">
-        <Button className="w-full bg-blue-600 text-white hover:bg-blue-700">
-          <Plus className="size-5" />
-          Create New Ronda
-        </Button>
-        <p className="mt-2 text-center text-gray-600 text-xs">
-          Start a new savings group
-        </p>
-      </div>
+      <Button className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-xl bg-linear-to-b from-primary to-primary/10 py-10">
+        <div className="flex items-center justify-center rounded-full bg-foreground p-1">
+          <Plus className="size-4 text-primary" strokeWidth={2} />
+        </div>
+        <div className="flex flex-col items-start justify-center">
+          <span className="font-semibold text-sm text-white">
+            Create New Ronda
+          </span>
+          <span className="font-light text-white text-xs">
+            Start a new savings group
+          </span>
+        </div>
+      </Button>
 
-      <div className="px-6 pb-4">
+      <div className="">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold text-black text-lg">Invitations</h2>
+          <h2 className="font-bold text-lg text-muted">Invitations</h2>
           <button
             className="text-blue-600 text-sm hover:underline"
             type="button"
@@ -83,9 +91,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="px-6 pb-6">
+      <div className="">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold text-black text-lg">Your Rondas</h2>
+          <h2 className="font-bold text-lg text-muted">Your Rondas</h2>
           <button
             className="text-blue-600 text-sm hover:underline"
             type="button"

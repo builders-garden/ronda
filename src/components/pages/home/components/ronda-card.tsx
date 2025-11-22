@@ -76,7 +76,7 @@ export function RondaCard({
               <Users className="size-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-base text-black">{name}</span>
+              <span className="font-semibold text-base text-muted">{name}</span>
               <span className="text-gray-600 text-xs">
                 {memberCount} members • {weeklyAmount}/week
               </span>

@@ -35,7 +35,7 @@ export const UserProfile = ({ onClick, pageContent }: UserProfileProps) => {
     <motion.div whileTap={{ scale: 0.9 }}>
       <Button
         className={cn(
-          "size-6 cursor-pointer rounded-xl bg-transparent p-0 transition-all hover:bg-transparent",
+          "size-[26px] cursor-pointer rounded-xl bg-transparent p-0 transition-all hover:bg-transparent",
           pageContent === PageContent.PROFILE &&
             "rounded-full ring-2 ring-primary"
         )}
@@ -46,20 +46,20 @@ export const UserProfile = ({ onClick, pageContent }: UserProfileProps) => {
       >
         {isAuthenticated ? (
           pfpUrl ? (
-            <UserAvatar avatarUrl={pfpUrl} className="size-6" size="sm" />
+            <UserAvatar avatarUrl={pfpUrl} className="size-[26px]" size="sm" />
           ) : (
-            <div className="size-6 rounded-full text-muted-foreground text-sm">
+            <div className="size-[26px] rounded-full text-muted-foreground text-sm">
               {user?.name ? getInitials(user.name) : ""}
             </div>
           )
         ) : isSigningIn ? (
-          <div className="flex size-6 items-center justify-center rounded-full">
-            <Loader2Icon className="size-6 animate-spin" />
+          <div className="flex size-[26px] items-center justify-center rounded-full">
+            <Loader2Icon className="size-[26px] animate-spin" />
           </div>
         ) : isConnected ? (
-          <CircleUserRoundIcon className="size-6" />
+          <CircleUserRoundIcon className="size-[26px]" />
         ) : (
-          <LogInIcon className="size-6" />
+          <LogInIcon className="size-[26px]" />
         )}
       </Button>
     </motion.div>

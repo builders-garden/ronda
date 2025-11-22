@@ -37,7 +37,7 @@ export function InvitationCard({
             ))}
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-black text-sm">{name}</span>
+            <span className="font-semibold text-muted text-sm">{name}</span>
             <div className="flex items-center gap-1 text-gray-600 text-xs">
               <span>+{memberCount - 3}</span>
               <span>•</span>
@@ -54,7 +54,7 @@ export function InvitationCard({
             Accept
           </Button>
           <Button
-            className="h-8 border-gray-300 bg-white px-4 text-black text-xs hover:bg-gray-50"
+            className="h-8 border-gray-300 bg-white px-4 text-muted text-xs hover:bg-gray-50"
             onClick={onDecline}
             size="sm"
             variant="outline"

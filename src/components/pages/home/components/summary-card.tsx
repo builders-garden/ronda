@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/utils";
 
 type SummaryCardProps = {
@@ -7,6 +7,7 @@ type SummaryCardProps = {
   label: string;
   value: string;
   iconColor?: string;
+  bgColor?: string;
 };
 
 export function SummaryCard({
@@ -14,18 +15,19 @@ export function SummaryCard({
   label,
   value,
   iconColor = "text-gray-600",
+  bgColor = "bg-gray-100",
 }: SummaryCardProps) {
   return (
-    <Card className="flex-1 border-gray-200 bg-white shadow-sm">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className={cn("rounded-full bg-gray-100 p-2", iconColor)}>
-          <Icon className="size-5" />
+    <Card className="flex items-center justify-center bg-white p-3 drop-shadow-xs">
+      <div className="flex items-center justify-between">
+        <span className="text-muted-foreground text-xs">{label}</span>
+        <div className={cn("rounded-full p-2", iconColor, bgColor)}>
+          <Icon className="size-4.5" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-gray-600 text-xs">{label}</span>
-          <span className="font-semibold text-black text-lg">{value}</span>
-        </div>
-      </CardContent>
+      </div>
+      <div className="flex w-full items-center justify-start">
+        <span className="font-semibold text-lg text-muted">{value}</span>
+      </div>
     </Card>
   );
 }

@@ -31,7 +31,7 @@ export default function GlobalError({
             <h2 className="mb-8">{"Something went wrong!"}</h2>
             <div className="flex items-center gap-4">
               <Button
-                className="w-fit rounded bg-zinc-50 px-4 py-2 font-semibold text-black transition focus-within:bg-zinc-300 hover:bg-zinc-100"
+                className="w-fit rounded bg-zinc-50 px-4 py-2 font-semibold text-muted transition focus-within:bg-zinc-300 hover:bg-zinc-100"
                 onClick={resetHandler}
               >
                 Try again

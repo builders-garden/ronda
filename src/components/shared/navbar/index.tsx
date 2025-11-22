@@ -11,7 +11,7 @@ export const Navbar = () => {
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed right-0 bottom-0 left-0 z-50 flex h-[64px] w-full items-center justify-between border-border border-t bg-foreground px-12 text-black"
+      className="fixed right-0 bottom-0 left-0 z-50 flex h-[64px] w-full items-center justify-between border-border border-t bg-foreground px-12 text-muted"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -23,7 +23,7 @@ export const Navbar = () => {
       >
         <House
           className={cn(
-            "size-5 transition-all duration-300",
+            "size-[22px] transition-all duration-300",
             pageContent === PageContent.HOME
               ? "text-primary"
               : "text-muted-foreground"
@@ -38,7 +38,7 @@ export const Navbar = () => {
       >
         <UsersRound
           className={cn(
-            "size-5 transition-all duration-300",
+            "size-[22px] transition-all duration-300",
             pageContent === PageContent.CIRCLES
               ? "text-primary"
               : "text-muted-foreground"
