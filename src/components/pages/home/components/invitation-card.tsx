@@ -61,14 +61,14 @@ export function InvitationCard({
 
       <div className="flex gap-2">
         <Button
-          className="h-6 bg-success px-2 text-xs hover:bg-success/90"
+          className="h-6 cursor-pointer bg-success px-2 text-xs hover:bg-success/90"
           onClick={onAccept}
           size="sm"
         >
           Accept
         </Button>
         <Button
-          className="h-6 border-border bg-white px-2 text-xs hover:bg-gray-50"
+          className="h-6 cursor-pointer border-border bg-white px-2 text-xs hover:bg-gray-50"
           onClick={onDecline}
           size="sm"
           variant="outline"
