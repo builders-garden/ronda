@@ -51,7 +51,7 @@ export function App() {
           <div>Profile</div>
         ) : null}
       </AnimatePresence>
-      <Navbar />
+      {!(isAuthLoading || authError) && <Navbar />}
     </div>
   );
 }

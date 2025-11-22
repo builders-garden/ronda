@@ -46,7 +46,7 @@ export default function HomePage() {
 
       {/* Create New Ronda Button */}
       <motion.button
-        className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-linear-to-b from-primary to-primary/50 p-4 drop-shadow-sm"
+        className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-linear-to-b from-primary to-primary/80 p-4 drop-shadow-sm"
         whileTap={{ scale: 0.98 }}
       >
         <div className="flex size-6 items-center justify-center rounded-full bg-foreground">

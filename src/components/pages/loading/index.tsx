@@ -10,7 +10,7 @@ export default function LoadingPage() {
       initial={{ opacity: 0 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
     >
-      <Loader2 className="h-10 w-10 animate-spin" />
+      <Loader2 className="h-10 w-10 animate-spin text-muted" />
     </motion.div>
   );
 }
