@@ -170,7 +170,7 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
             </div>
             {formData.ageVerification && (
               <p className="text-right text-[#6f7780] text-xs">
-                Min: {formData.minAge} • Max: {formData.maxAge} (Optional)
+                Min: {formData.minAge}
               </p>
             )}
           </div>
@@ -226,38 +226,17 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <p className="text-[#6f7780] text-xs">First Payout Date</p>
+            <p className="text-[#6f7780] text-xs">Number of Cycles</p>
             <p className="text-right font-semibold text-sm text-zinc-950">
-              {formData.startDate
-                ? new Date(formData.startDate).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })
-                : "—"}
+              {formData.numberOfCycles || "—"}
             </p>
           </div>
           <div className="flex items-center justify-between">
-            <p className="text-[#6f7780] text-xs">Duration</p>
+            <p className="text-[#6f7780] text-xs">Frequency</p>
             <p className="text-right font-semibold text-sm text-zinc-950">
-              {formData.participants.length} months
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-[#6f7780] text-xs">Final Payout</p>
-            <p className="text-right font-semibold text-sm text-zinc-950">
-              {formData.startDate
-                ? new Date(
-                    new Date(formData.startDate).setMonth(
-                      new Date(formData.startDate).getMonth() +
-                        formData.participants.length -
-                        1
-                    )
-                  ).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })
+              {formData.frequency
+                ? formData.frequency.charAt(0).toUpperCase() +
+                  formData.frequency.slice(1)
                 : "—"}
             </p>
           </div>
