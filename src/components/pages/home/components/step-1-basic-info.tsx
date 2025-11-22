@@ -12,13 +12,13 @@ export function Step1BasicInfo() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <Label
-          className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]"
+          className="font-semibold text-muted text-sm tracking-[-0.35px]"
           htmlFor="rosca-name"
         >
-          ROSCA Name *
+          ROSCA Name <span className="text-destructive">*</span>
         </Label>
         <Input
-          className="h-[50px] rounded-2xl border border-[rgba(232,235,237,0.3)] bg-[#f5f7f9] font-medium text-sm text-zinc-950 placeholder:text-zinc-950"
+          className="h-[50px] rounded-2xl border border-border bg-foreground font-medium text-muted text-sm placeholder:text-muted-foreground/50"
           id="rosca-name"
           onChange={(e) => updateFormData("roscaName", e.target.value)}
           placeholder="e.g., Work Friends Savings"
@@ -28,13 +28,13 @@ export function Step1BasicInfo() {
 
       <div className="flex flex-col gap-2">
         <Label
-          className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]"
+          className="font-semibold text-muted text-sm tracking-[-0.35px]"
           htmlFor="description"
         >
           Description (Optional)
         </Label>
         <Textarea
-          className="min-h-[110px] resize-none rounded-2xl border border-[rgba(232,235,237,0.3)] bg-[#f5f7f9] p-4 font-medium text-sm text-zinc-950 placeholder:text-zinc-950"
+          className="min-h-[110px] resize-none rounded-2xl border border-border bg-foreground p-4 font-medium text-muted text-sm placeholder:text-muted-foreground/50"
           id="description"
           onChange={(e) => updateFormData("description", e.target.value)}
           placeholder="Tell your group what this is for..."
@@ -42,16 +42,14 @@ export function Step1BasicInfo() {
         />
       </div>
 
-      <div className="rounded-xl bg-[rgba(232,235,237,0.3)] p-4">
-        <div className="flex gap-2">
-          <div className="flex size-1.5 shrink-0 items-center justify-center pt-1">
-            <div className="size-1.5 rounded-lg bg-[#6b9b7a]" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="font-medium text-[#6b9b7a] text-sm tracking-[-0.35px]">
+      <div className="rounded-xl bg-border/50 p-4">
+        <div className="flex items-start justify-center gap-2">
+          <span className="text-success">●</span>
+          <div className="flex flex-col gap-1 pt-[3px]">
+            <p className="font-bold text-sm text-success tracking-[-0.35px]">
               Pro tip
             </p>
-            <p className="text-[#6f7780] text-xs leading-[19.5px]">
+            <p className="text-muted-foreground text-xs leading-[19.5px]">
               Choose a clear name that describes your group and purpose. This
               helps members remember what the group is for!
             </p>

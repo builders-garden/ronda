@@ -75,7 +75,7 @@ export default async function RootLayout({
         <Providers cookie={cookie}>
           {children}
           <Suspense>
-            <Toaster />
+            <Toaster position="top-right" richColors />
           </Suspense>
         </Providers>
       </body>

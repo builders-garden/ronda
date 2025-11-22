@@ -10,6 +10,7 @@ import {
   Plus,
   Users,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 import { WhatIsRoscaModal } from "@/components/shared/what-is-rosca-modal";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ const STEP_CONFIG = {
   1: { title: "Basic Information", icon: FileText, percent: 25, emoji: "👋" },
   2: { title: "Contribution Setup", icon: Coins, percent: 50, emoji: "✋" },
   3: { title: "Participants", icon: Users, percent: 75, emoji: "👥" },
-  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "✓" },
+  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "👀" },
 };
 
 function CreateRondaModalContent({
@@ -122,7 +123,7 @@ function CreateRondaModalContent({
               <div className="size-11" />
             )}
             <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-[#f59e42]">
+              <div className="flex size-8 items-center justify-center rounded-xl bg-warning/20">
                 <span className="text-xl">
                   {currentStep === 1 ? "💰" : "🍍"}
                 </span>
@@ -132,12 +133,13 @@ function CreateRondaModalContent({
               </span>
             </div>
             <DialogClose asChild>
-              <button
-                className="flex size-11 items-center justify-center rounded-xl hover:bg-zinc-50"
+              <motion.button
+                className="flex size-11 cursor-pointer items-center justify-center rounded-xl text-muted hover:bg-zinc-50"
                 type="button"
+                whileTap={{ scale: 0.98 }}
               >
                 <Plus className="size-6 rotate-45" />
-              </button>
+              </motion.button>
             </DialogClose>
           </div>
 
@@ -152,7 +154,7 @@ function CreateRondaModalContent({
                 </DialogTitle>
                 {currentStep !== 4 && (
                   <button
-                    className="flex items-center gap-1.5 font-medium text-[#7b8ff5] text-xs hover:text-[#7b8ff5]/80"
+                    className="flex cursor-pointer items-center gap-1.5 font-medium text-primary text-xs hover:text-primary/80"
                     onClick={() => setShowWhatIsRosca(true)}
                     type="button"
                   >
@@ -166,7 +168,7 @@ function CreateRondaModalContent({
             {/* Progress Card */}
             <div className="rounded-2xl border border-[rgba(232,235,237,0.3)] bg-white p-4">
               <div className="flex items-center gap-4">
-                <div className="flex size-10 items-center justify-center rounded-2xl bg-linear-to-b from-[rgba(123,143,245,0.2)] to-[rgba(123,143,245,0.1)]">
+                <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10">
                   <span className="text-2xl">{stepConfig?.emoji || "📝"}</span>
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
@@ -183,11 +185,11 @@ function CreateRondaModalContent({
                   <div className="flex items-center gap-2">
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
                       <div
-                        className="h-full rounded-full bg-[#7b8ff5] transition-all"
+                        className="h-full rounded-full bg-primary transition-all"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
-                    <p className="font-medium text-[#6f7780] text-xs">
+                    <p className="font-medium text-muted text-xs">
                       {progress}%
                     </p>
                   </div>
@@ -200,7 +202,7 @@ function CreateRondaModalContent({
           </div>
 
           {/* Bottom Bar with Navigation Buttons and Progress Dots */}
-          <div className="sticky bottom-0 flex flex-col gap-4 border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+          <div className="sticky bottom-0 flex flex-col gap-4 border-border border-t bg-white p-4">
             {/* Navigation Buttons */}
             <div className="flex items-center gap-3">
               <Button
@@ -214,7 +216,7 @@ function CreateRondaModalContent({
               </Button>
               {currentStep === TOTAL_STEPS ? (
                 <Button
-                  className="h-[52px] flex-1 rounded-2xl bg-[#7b8ff5] font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-[#7b8ff5]/90"
+                  className="h-[52px] flex-1 rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90"
                   onClick={handleCreateRosca}
                 >
                   Create ROSCA
@@ -222,7 +224,7 @@ function CreateRondaModalContent({
                 </Button>
               ) : (
                 <Button
-                  className="h-[52px] flex-1 rounded-2xl bg-[#7b8ff5] font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-[#7b8ff5]/90 disabled:opacity-50"
+                  className="h-[52px] flex-1 rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
                   disabled={!canProceedFromStep(currentStep)}
                   onClick={handleNext}
                 >

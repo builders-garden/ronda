@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { searchUserByUsername } from "@/lib/neynar";
+import { searchUsersByUsername } from "@/lib/neynar";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ users: [] }, { status: 200 });
     }
 
-    const users = await searchUserByUsername(query);
+    const users = await searchUsersByUsername(query);
 
     return NextResponse.json({ users }, { status: 200 });
   } catch (error) {

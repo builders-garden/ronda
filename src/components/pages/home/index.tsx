@@ -52,7 +52,7 @@ export default function HomePage() {
 
           {/* Create New Circle Button */}
           <motion.button
-            className="flex h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-[24px] bg-zinc-900"
+            className="flex h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-[24px] bg-linear-to-b from-primary to-primary/80"
             onClick={() => setIsCreateModalOpen(true)}
             whileTap={{ scale: 0.98 }}
           >
