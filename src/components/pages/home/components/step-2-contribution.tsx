@@ -48,7 +48,7 @@ export function Step2Contribution() {
           Frequency *
         </Label>
         <Select
-          onValueChange={(value) => updateFormData("frequency", value)}
+          onValueChange={(value: string) => updateFormData("frequency", value)}
           value={formData.frequency}
         >
           <SelectTrigger

@@ -253,7 +253,7 @@ export function Step3Participants() {
             </div>
             <Switch
               checked={formData.proofOfHuman}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked: boolean) =>
                 updateFormData("proofOfHuman", checked)
               }
             />
@@ -271,7 +271,7 @@ export function Step3Participants() {
             </div>
             <Switch
               checked={formData.ageVerification}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked: boolean) =>
                 updateFormData("ageVerification", checked)
               }
             />
@@ -313,7 +313,7 @@ export function Step3Participants() {
             </div>
             <Switch
               checked={formData.genderVerification}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked: boolean) =>
                 updateFormData("genderVerification", checked)
               }
             />
@@ -324,7 +324,7 @@ export function Step3Participants() {
                 Allowed Gender(s)
               </Label>
               <Select
-                onValueChange={(value) =>
+                onValueChange={(value: string) =>
                   updateFormData("allowedGenders", value)
                 }
                 value={formData.allowedGenders}
@@ -359,7 +359,7 @@ export function Step3Participants() {
             </div>
             <Switch
               checked={formData.nationalityVerification}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked: boolean) =>
                 updateFormData("nationalityVerification", checked)
               }
             />
