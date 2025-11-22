@@ -2,7 +2,7 @@
 
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { createContext, type ReactNode, useContext, useEffect } from "react";
-import { basePreconf } from "viem/chains";
+import { celo } from "viem/chains";
 import { useAccount, useConnect, useSwitchChain } from "wagmi";
 import type { FarcasterUser } from "@/types/user.type";
 import { useEnvironment } from "./environment-context";
@@ -50,8 +50,8 @@ export function AppProvider({ children }: AppProviderProps) {
 
   // connect to base (preconf)
   useEffect(() => {
-    if (isConnected && !!chainId && chainId !== basePreconf.id) {
-      switchChain({ chainId: basePreconf.id });
+    if (isConnected && !!chainId && chainId !== celo.id) {
+      switchChain({ chainId: celo.id });
     }
   }, [isConnected, chainId, switchChain]);
 
