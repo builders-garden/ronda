@@ -25,7 +25,7 @@ export default function Providers({
       <ErudaProvider>
         <WagmiProvider config={wagmiConfigMiniApp} initialState={initialState}>
           <QueryClientProvider client={queryClient}>
-            <FarcasterProvider addMiniAppOnLoad={true}>
+            <FarcasterProvider addMiniAppOnLoad={false}>
               <AuthProvider>
                 <NuqsAdapter>
                   <PageContentProvider>{children}</PageContentProvider>
