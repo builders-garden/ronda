@@ -1,7 +1,7 @@
 import { MessageCircleWarning } from "lucide-react";
+import { cn } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card } from "../ui/card";
-import { cn } from "@/utils";
 
 type ProfileCardProps = {
   name: string;
