@@ -4,7 +4,7 @@ import sdk from "@farcaster/miniapp-sdk";
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { getUniversalLink } from "@selfxyz/core";
 import { SelfAppBuilder, SelfQRcodeWrapper } from "@selfxyz/qrcode";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useMemo, useState } from "react";
 import type { Address } from "viem";
@@ -51,7 +51,6 @@ export default function TestPage() {
   const [verificationSuccess, setVerificationSuccess] =
     useState<boolean>(false);
   const { connect } = useConnect();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Factory address from env
@@ -487,14 +486,8 @@ export default function TestPage() {
     if (verified === "true") {
       setVerificationSuccess(true);
       console.log("Self verification successful!");
-
-      // Clear the query parameter from URL after a delay
-      setTimeout(() => {
-        router.replace("/test", { scroll: false });
-        setVerificationSuccess(false);
-      }, 5000); // Show success message for 5 seconds
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
