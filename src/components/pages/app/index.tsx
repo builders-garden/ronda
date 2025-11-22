@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
 import { usePageContent } from "@/contexts/page-content-context";
 import { PageContent } from "@/lib/enum";
+import CirclesPage from "../circles";
 import ErrorPage from "../error";
 import HomePage from "../home";
 import LoadingPage from "../loading";
@@ -47,7 +48,7 @@ export function App() {
         ) : pageContent === PageContent.HOME ? (
           <HomePage key="home" />
         ) : pageContent === PageContent.CIRCLES ? (
-          <div>Circles</div>
+          <CirclesPage key="circles" />
         ) : pageContent === PageContent.PROFILE ? (
           <ProfilePage key="profile" />
         ) : null}
