@@ -6,6 +6,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
+import { RondaDrawer } from "@/components/shared/ronda-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -87,6 +89,8 @@ export function RondaCard({
   avatars,
   onDeposit,
 }: RondaCardProps) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const config = statusConfig[status];
   const progress = (currentWeek / totalWeeks) * 100;
 
@@ -97,70 +101,83 @@ export function RondaCard({
         status === RondaStatus.DEPOSIT_DUE && "ring-2 ring-warning"
       )}
     >
-      <div className="flex w-full items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "flex size-12 items-center justify-center rounded-full",
-              config.bgIconColor,
-              config.iconColor
-            )}
-          >
-            <Users className="size-6" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-base text-muted">{name}</span>
-            <span className="text-gray-600 text-xs">
-              {memberCount} members • {weeklyAmount}/week
-            </span>
-          </div>
-        </div>
-        <Badge
-          className={cn(
-            "border-none px-2 py-1 font-medium text-xs",
-            config.badgeColor
-          )}
-          variant="outline"
-        >
-          {config.badge}
-        </Badge>
-      </div>
-
-      <div className="flex w-full flex-col items-start justify-start gap-2">
-        <div className="flex w-full items-center justify-between text-muted text-sm">
-          <span>Progress</span>
-          <span className="font-semibold">
-            {currentWeek} of {totalWeeks} weeks
-          </span>
-        </div>
-        <Progress
-          className={cn("h-2", config.progressBackgroundColor)}
-          progressBarClassName={config.progressColor}
-          value={progress}
-        />
-      </div>
-
-      <div className="flex w-full items-center justify-start">
-        <div className="-space-x-2 flex">
-          {avatars.slice(0, 3).map((avatar, index) => (
-            <Avatar
-              className="size-7 border-[1.5px] border-foreground"
-              key={`${name}-${index}-${avatar}`}
-            >
-              <AvatarImage alt="" src={avatar} />
-              <AvatarFallback className="bg-gray-200 text-xs">
-                {name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-          ))}
-          {memberCount > 3 && (
-            <div className="z-10 flex size-7 items-center justify-center rounded-full border-[1.5px] border-foreground bg-gray-200 text-xs">
-              +{memberCount - 3}
+      <RondaDrawer
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+      >
+        <div className="flex w-full flex-col items-center justify-center gap-4">
+          {/* Ronda Name and Member Count */}
+          <div className="flex w-full items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "flex size-12 items-center justify-center rounded-full",
+                  config.bgIconColor,
+                  config.iconColor
+                )}
+              >
+                <Users className="size-6" />
+              </div>
+              <div className="flex flex-col items-start justify-center">
+                <span className="font-semibold text-base text-muted">
+                  {name}
+                </span>
+                <span className="text-gray-600 text-xs">
+                  {memberCount} members • {weeklyAmount}/week
+                </span>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+            <Badge
+              className={cn(
+                "border-none px-2 py-1 font-medium text-xs",
+                config.badgeColor
+              )}
+              variant="outline"
+            >
+              {config.badge}
+            </Badge>
+          </div>
 
+          {/* Progress */}
+          <div className="flex w-full flex-col items-start justify-start gap-2">
+            <div className="flex w-full items-center justify-between text-muted text-sm">
+              <span>Progress</span>
+              <span className="font-semibold">
+                {currentWeek} of {totalWeeks} weeks
+              </span>
+            </div>
+            <Progress
+              className={cn("h-2", config.progressBackgroundColor)}
+              progressBarClassName={config.progressColor}
+              value={progress}
+            />
+          </div>
+
+          {/* User Avatar List */}
+          <div className="flex w-full items-center justify-start">
+            <div className="-space-x-2 flex">
+              {avatars.slice(0, 3).map((avatar, index) => (
+                <Avatar
+                  className="size-7 border-[1.5px] border-foreground"
+                  key={`${name}-${index}-${avatar}`}
+                >
+                  <AvatarImage alt="" src={avatar} />
+                  <AvatarFallback className="bg-gray-200 text-xs">
+                    {name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {memberCount > 3 && (
+                <div className="z-10 flex size-7 items-center justify-center rounded-full border-[1.5px] border-foreground bg-gray-200 text-xs">
+                  +{memberCount - 3}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </RondaDrawer>
+
+      {/* Status Message */}
       {config.statusMessage && (
         <div
           className={cn(
@@ -195,6 +212,7 @@ export function RondaCard({
         </div>
       )}
 
+      {/* Deposit Button */}
       {status === RondaStatus.DEPOSIT_DUE && (
         <motion.button
           className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-warning px-4 py-2 font-medium text-foreground shadow-lg shadow-warning/20 hover:bg-warning/90"
