@@ -1,5 +1,6 @@
 import { Configuration, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import type { User as NeynarUser } from "@neynar/nodejs-sdk/build/api/index.js";
+import ky from "ky";
 import { env } from "@/lib/env";
 import { formatAvatarSrc } from "@/utils";
 
@@ -72,6 +73,36 @@ export const searchUserByUsername = async (
     pfp_url: user.pfp_url ? formatAvatarSrc(user.pfp_url) : "",
   }));
   return users[0];
+};
+
+/**
+ * Search for users by username
+ * @param username - The username to search for
+ * @param viewerFid - The FID of the viewer
+ * @returns The users
+ */
+export const searchUsersByUsername = async (
+  username: string,
+  viewerFid?: string
+): Promise<NeynarUser[]> => {
+  const data = await ky
+    .get<{ result: { users: NeynarUser[] } }>(
+      `https://api.neynar.com/v2/farcaster/user/search?q=${username}${viewerFid ? `&viewer_fid=${viewerFid}` : ""}`,
+      {
+        headers: {
+          "x-api-key": env.NEYNAR_API_KEY,
+        },
+      }
+    )
+    .json();
+
+  if (!data.result?.users) {
+    return [];
+  }
+  return data.result.users.map((user) => ({
+    ...user,
+    pfp_url: user.pfp_url ? formatAvatarSrc(user.pfp_url) : "",
+  }));
 };
 
 /**

@@ -196,6 +196,14 @@ export type Farcaster = typeof farcaster.$inferSelect;
 export type CreateFarcaster = typeof farcaster.$inferInsert;
 export type UpdateFarcaster = Partial<CreateFarcaster>;
 
+export type Participants = typeof participants.$inferSelect;
+export type CreateParticipants = typeof participants.$inferInsert;
+export type UpdateParticipants = Partial<CreateParticipants>;
+
+export type Groups = typeof groups.$inferSelect;
+export type CreateGroups = typeof groups.$inferInsert;
+export type UpdateGroups = Partial<CreateGroups>;
+
 /**
  * Drizzle Relations
  */
