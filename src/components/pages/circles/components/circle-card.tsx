@@ -106,8 +106,12 @@ export function CircleCard({
   const progress = (currentWeek / totalWeeks) * 100;
 
   return (
-    <RondaDrawer isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen}>
-      <Card className="flex w-full flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
+    <RondaDrawer
+      asChild
+      isDrawerOpen={isDrawerOpen}
+      setIsDrawerOpen={setIsDrawerOpen}
+    >
+      <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
         {/* Header: Name and Status Badge */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
@@ -155,19 +159,28 @@ export function CircleCard({
                 {config.alertTitle}
               </span>
             </div>
-            <motion.button
+            <motion.div
               className={cn(
-                "h-9 rounded-2xl px-4 py-2 font-semibold text-[12px] text-white",
+                "flex h-9 cursor-pointer items-center justify-center rounded-2xl px-4 py-2 font-semibold text-[12px] text-white",
                 config.buttonBg
               )}
               onClick={(e) => {
                 e.stopPropagation();
                 // Handle button action here (e.g., pay now, view summary)
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Handle button action here (e.g., pay now, view summary)
+                }
+              }}
+              role="button"
+              tabIndex={0}
               whileTap={{ scale: 0.98 }}
             >
               {config.buttonText}
-            </motion.button>
+            </motion.div>
           </div>
         )}
 
