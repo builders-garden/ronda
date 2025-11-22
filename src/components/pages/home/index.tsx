@@ -9,7 +9,6 @@ import {
   UsersRound,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
 import { HomeHeader } from "./components/home-header";
 import { InvitationCard } from "./components/invitation-card";
 import { RondaCard } from "./components/ronda-card";
@@ -51,9 +50,13 @@ export default function HomePage() {
         />
       </div>
 
-      <Button className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-xl bg-linear-to-b from-primary to-primary/10 py-10">
-        <div className="flex items-center justify-center rounded-full bg-foreground p-1">
-          <Plus className="size-4 text-primary" strokeWidth={2} />
+      {/* Create New Ronda Button */}
+      <motion.button
+        className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-xl bg-linear-to-b from-primary to-primary/50 p-4 drop-shadow-sm"
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex size-6 items-center justify-center rounded-full bg-foreground">
+          <Plus className="size-3.5 text-primary" strokeWidth={3.3} />
         </div>
         <div className="flex flex-col items-start justify-center">
           <span className="font-semibold text-sm text-white">
@@ -63,19 +66,20 @@ export default function HomePage() {
             Start a new savings group
           </span>
         </div>
-      </Button>
+      </motion.button>
 
-      <div className="">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold text-lg text-muted">Invitations</h2>
-          <button
-            className="text-blue-600 text-sm hover:underline"
-            type="button"
+      {/* Invitations */}
+      <div className="flex w-full flex-col items-center justify-start gap-3">
+        <div className="flex w-full items-center justify-between">
+          <h2 className="font-semibold text-lg text-muted">Invitations</h2>
+          <motion.button
+            className="cursor-pointer text-blue-600 text-sm hover:underline"
+            whileTap={{ scale: 0.98 }}
           >
             View All
-          </button>
+          </motion.button>
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex w-full flex-col items-center justify-start gap-2">
           <InvitationCard
             avatars={["", "", ""]}
             memberCount={6}
