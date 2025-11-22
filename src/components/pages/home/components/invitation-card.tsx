@@ -238,15 +238,18 @@ export function InvitationCard({
               </div>
 
               <div className="flex w-full flex-col gap-2">
-                {avatars.slice(0, 4).map((avatar, index) => (
-                  <ProfileCard
-                    avatar={avatar}
-                    key={`${name}-member-${avatar}`}
-                    name={index === 0 ? "You" : `Member ${index + 1}`}
-                    status="pending"
-                    statusMessage="Pending Invite"
-                  />
-                ))}
+                {avatars.slice(0, 4).map((avatar, idx) => {
+                  const isFirst = idx === 0;
+                  return (
+                    <ProfileCard
+                      avatar={avatar}
+                      key={`${name}-member-${avatar}`}
+                      name={isFirst ? "You" : `Member ${idx + 1}`}
+                      status="pending"
+                      statusMessage="Pending Invite"
+                    />
+                  );
+                })}
               </div>
             </div>
           </ScrollArea>
