@@ -8,6 +8,7 @@ import { useEnvironment } from "@/contexts/environment-context";
 import { usePageContent } from "@/contexts/page-content-context";
 import { PageContent } from "@/lib/enum";
 import ErrorPage from "../error";
+import HomePage from "../home";
 import LoadingPage from "../loading";
 
 export function App() {
@@ -43,7 +44,7 @@ export function App() {
         ) : authError ? (
           <ErrorPage key="error" />
         ) : pageContent === PageContent.HOME ? (
-          <div>Home</div>
+          <HomePage key="home" />
         ) : pageContent === PageContent.CIRCLES ? (
           <div>Circles</div>
         ) : pageContent === PageContent.PROFILE ? (

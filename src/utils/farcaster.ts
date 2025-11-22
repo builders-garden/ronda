@@ -121,12 +121,14 @@ export function getFarcasterManifest() {
       webhookUrl: `${appUrl}/api/webhook/farcaster`, // our farcaster webhook
       // Metadata https://github.com/farcasterxyz/miniapps/discussions/191
       subtitle: "An onchain ROSCA savings app", // 30 characters, no emojis or special characters, short description under app name
-      description: "Ronda is an onchain rotating savings and credit association (ROSCA) built into a Farcaster mini app", // 170 characters, no emojis or special characters, promotional message displayed on Mini App Page
+      description:
+        "Ronda is an onchain rotating savings and credit association (ROSCA) built into a Farcaster mini app", // 170 characters, no emojis or special characters, promotional message displayed on Mini App Page
       primaryCategory: "finance", // https://github.com/farcasterxyz/miniapps/blob/main/packages/miniapp-core/src/schemas/manifest.ts
       tags: ["rosca", "savings", "credit", "association"], // up to 5 tags, filtering/search tags
       tagline: "An onchain ROSCA savings app", // 30 characters, marketing tagline should be punchy and descriptive
       ogTitle: `${miniappName}`, // 30 characters, app name + short tag, Title case, no emojis
-      ogDescription: "Ronda is an onchain rotating savings and credit association (ROSCA) built into a Farcaster mini app", // 100 characters, summarize core benefits in 1-2 lines
+      ogDescription:
+        "Ronda is an onchain rotating savings and credit association (ROSCA) built into a Farcaster mini app", // 100 characters, summarize core benefits in 1-2 lines
       screenshotUrls: [
         // 1284 x 2778, visual previews of the app, max 3 screenshots
         `${appUrl}/images/feed.png`,
