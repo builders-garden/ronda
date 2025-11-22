@@ -10,6 +10,7 @@ import { PageContent } from "@/lib/enum";
 import ErrorPage from "../error";
 import HomePage from "../home";
 import LoadingPage from "../loading";
+import ProfilePage from "../profile";
 
 export function App() {
   const {
@@ -48,7 +49,7 @@ export function App() {
         ) : pageContent === PageContent.CIRCLES ? (
           <div>Circles</div>
         ) : pageContent === PageContent.PROFILE ? (
-          <div>Profile</div>
+          <ProfilePage key="profile" />
         ) : null}
       </AnimatePresence>
       {!(isAuthLoading || authError) && <Navbar />}
