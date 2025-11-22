@@ -114,18 +114,25 @@ export function CreateRondaProvider({ children }: { children: ReactNode }) {
     switch (step) {
       case 1:
         return formData.roscaName.trim().length > 0;
-      case 2:
+      case 2: {
+        const contributionAmount = Number.parseFloat(
+          formData.contributionAmount.trim()
+        );
+        const numberOfCycles = Number.parseInt(
+          formData.numberOfCycles.trim(),
+          10
+        );
         return (
           formData.frequency.length > 0 &&
           formData.contributionAmount.trim().length > 0 &&
-          !Number.isNaN(
-            Number.parseFloat(formData.contributionAmount.trim())
-          ) &&
-          Number.parseFloat(formData.contributionAmount.trim()) > 0 &&
+          !Number.isNaN(contributionAmount) &&
+          contributionAmount > 0 &&
           formData.numberOfCycles.trim().length > 0 &&
-          !Number.isNaN(Number.parseFloat(formData.numberOfCycles.trim())) &&
-          Number.parseFloat(formData.numberOfCycles.trim()) > 0
+          !Number.isNaN(numberOfCycles) &&
+          numberOfCycles > 1 &&
+          numberOfCycles < 12
         );
+      }
       case 3:
         return formData.participants.length >= 3;
       default:

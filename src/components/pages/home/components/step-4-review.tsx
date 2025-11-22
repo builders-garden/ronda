@@ -1,9 +1,8 @@
 "use client";
 
-import { Info } from "lucide-react";
+import { Info, SquarePen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useCreateRonda } from "./create-ronda-context";
 
 type Step4ReviewProps = {
@@ -27,15 +26,14 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           <h3 className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]">
             ROSCA Details
           </h3>
-          <Button
-            className="h-4 gap-1 p-0 text-[#7b8ff5] hover:text-[#7b8ff5]/80"
+          <button
+            className="flex cursor-pointer items-center gap-1 font-medium text-primary text-xs hover:underline"
             onClick={() => handleEdit(1)}
-            size="sm"
-            variant="ghost"
+            type="button"
           >
-            <Info className="size-4" />
-            <span className="font-medium text-xs">Edit</span>
-          </Button>
+            Edit
+            <SquarePen className="size-3" />
+          </button>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -59,15 +57,14 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           <h3 className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]">
             Contribution Details
           </h3>
-          <Button
-            className="h-4 gap-1 p-0 text-[#7b8ff5] hover:text-[#7b8ff5]/80"
+          <button
+            className="flex cursor-pointer items-center gap-1 font-medium text-primary text-xs hover:underline"
             onClick={() => handleEdit(2)}
-            size="sm"
-            variant="ghost"
+            type="button"
           >
-            <Info className="size-4" />
-            <span className="font-medium text-xs">Edit</span>
-          </Button>
+            Edit
+            <SquarePen className="size-3" />
+          </button>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -87,7 +84,7 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-[#6f7780] text-xs">Total Pool</p>
-            <p className="text-right font-semibold text-[#7b8ff5] text-sm">
+            <p className="text-right font-semibold text-primary text-sm">
               ${totalPot}
             </p>
           </div>
@@ -100,15 +97,14 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           <h3 className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]">
             Participants
           </h3>
-          <Button
-            className="h-4 gap-1 p-0 text-[#7b8ff5] hover:text-[#7b8ff5]/80"
+          <button
+            className="flex cursor-pointer items-center gap-1 font-medium text-primary text-xs hover:underline"
             onClick={() => handleEdit(3)}
-            size="sm"
-            variant="ghost"
+            type="button"
           >
-            <Info className="size-4" />
-            <span className="font-medium text-xs">Edit</span>
-          </Button>
+            Edit
+            <SquarePen className="size-3" />
+          </button>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -128,7 +124,7 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
                   {participant.name} {participant.isHost && "(You)"}
                 </p>
                 {participant.isHost && (
-                  <Badge className="h-6 rounded-full bg-[rgba(107,155,122,0.2)] px-2 font-semibold text-[#6b9b7a] text-xs">
+                  <Badge className="h-6 rounded-full bg-success/20 px-2 font-semibold text-success text-xs">
                     Host
                   </Badge>
                 )}
@@ -144,15 +140,14 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           <h3 className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]">
             Verification Requirements
           </h3>
-          <Button
-            className="h-4 gap-1 p-0 text-[#7b8ff5] hover:text-[#7b8ff5]/80"
+          <button
+            className="flex cursor-pointer items-center gap-1 font-medium text-primary text-xs hover:underline"
             onClick={() => handleEdit(3)}
-            size="sm"
-            variant="ghost"
+            type="button"
           >
-            <Info className="size-4" />
-            <span className="font-medium text-xs">Edit</span>
-          </Button>
+            Edit
+            <SquarePen className="size-3" />
+          </button>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -192,7 +187,7 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
               formData.allowedNationalities.length > 0 ? (
                 formData.allowedNationalities.map((nationality) => (
                   <Badge
-                    className="h-6 rounded-full bg-[rgba(123,143,245,0.2)] px-2 font-semibold text-[#7b8ff5] text-xs"
+                    className="h-6 rounded-full bg-primary/20 px-2 font-semibold text-primary text-xs"
                     key={nationality}
                   >
                     {nationality}
@@ -214,15 +209,14 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
           <h3 className="font-semibold text-sm text-zinc-950 tracking-[-0.35px]">
             Schedule
           </h3>
-          <Button
-            className="h-4 gap-1 p-0 text-[#7b8ff5] hover:text-[#7b8ff5]/80"
+          <button
+            className="flex cursor-pointer items-center gap-1 font-medium text-primary text-xs hover:underline"
             onClick={() => handleEdit(2)}
-            size="sm"
-            variant="ghost"
+            type="button"
           >
-            <Info className="size-4" />
-            <span className="font-medium text-xs">Edit</span>
-          </Button>
+            Edit
+            <SquarePen className="size-3" />
+          </button>
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -243,11 +237,11 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[rgba(107,155,122,0.3)] bg-linear-to-b from-[rgba(107,155,122,0.1)] to-[rgba(107,155,122,0.05)] p-4">
+      <div className="rounded-2xl border border-success/30 bg-linear-to-b from-success/10 to-success/5 p-4">
         <div className="flex gap-2">
-          <Info className="mt-0.5 size-5 shrink-0 text-[#6b9b7a]" />
-          <div className="flex flex-col gap-2">
-            <p className="font-bold text-[#6b9b7a] text-sm tracking-[-0.35px]">
+          <Info className="mt-0.5 size-5 shrink-0 text-success" />
+          <div className="flex flex-col gap-2 pt-0.5">
+            <p className="font-bold text-sm text-success tracking-[-0.35px]">
               Ready to Create
             </p>
             <p className="text-[#6f7780] text-xs leading-[19.5px]">

@@ -39,7 +39,7 @@ const STEP_CONFIG = {
   1: { title: "Basic Information", icon: FileText, percent: 25, emoji: "👋" },
   2: { title: "Contribution Setup", icon: Coins, percent: 50, emoji: "✋" },
   3: { title: "Participants", icon: Users, percent: 75, emoji: "👥" },
-  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "✓" },
+  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "👀" },
 };
 
 function CreateRondaModalContent({

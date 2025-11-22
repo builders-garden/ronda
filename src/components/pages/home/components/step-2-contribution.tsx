@@ -14,6 +14,38 @@ import { useCreateRonda } from "./create-ronda-context";
 export function Step2Contribution() {
   const { formData, updateFormData, totalPot } = useCreateRonda();
 
+  const handleContributionChange = (value: string) => {
+    const numValue = Number.parseFloat(value);
+    if (value === "" || Number.isNaN(numValue)) {
+      updateFormData("contributionAmount", value);
+      return;
+    }
+    // Force value to be greater than 0
+    if (numValue <= 0) {
+      updateFormData("contributionAmount", "");
+      return;
+    }
+    updateFormData("contributionAmount", value);
+  };
+
+  const handleCyclesChange = (value: string) => {
+    const numValue = Number.parseInt(value, 10);
+    if (value === "" || Number.isNaN(numValue)) {
+      updateFormData("numberOfCycles", value);
+      return;
+    }
+    // Force value to be between 1 and 12 (exclusive: 2-11)
+    if (numValue <= 1) {
+      updateFormData("numberOfCycles", "2");
+      return;
+    }
+    if (numValue > 12) {
+      updateFormData("numberOfCycles", "12");
+      return;
+    }
+    updateFormData("numberOfCycles", value);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -31,10 +63,10 @@ export function Step2Contribution() {
           <Input
             className="h-[50px] rounded-2xl border border-border bg-foreground pl-8 font-medium text-muted text-sm placeholder:text-muted-foreground/50"
             id="amount"
-            onChange={(e) =>
-              updateFormData("contributionAmount", e.target.value)
-            }
+            min="0.01"
+            onChange={(e) => handleContributionChange(e.target.value)}
             placeholder="0.00"
+            step="0.01"
             type="number"
             value={formData.contributionAmount}
           />
@@ -77,10 +109,10 @@ export function Step2Contribution() {
         <Input
           className="h-[50px] rounded-2xl border border-border bg-foreground font-medium text-muted text-sm placeholder:text-muted-foreground/50"
           id="number-of-cycles"
-          max={12}
-          min={1}
-          onChange={(e) => updateFormData("numberOfCycles", e.target.value)}
-          placeholder="1-12"
+          max={11}
+          min={2}
+          onChange={(e) => handleCyclesChange(e.target.value)}
+          placeholder="2-11"
           type="number"
           value={formData.numberOfCycles}
         />
