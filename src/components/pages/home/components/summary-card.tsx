@@ -18,7 +18,7 @@ export function SummaryCard({
   bgColor = "bg-gray-100",
 }: SummaryCardProps) {
   return (
-    <Card className="flex items-center justify-center bg-white p-3 drop-shadow-xs">
+    <Card className="flex items-center justify-center rounded-md bg-white p-3 drop-shadow-xs">
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground text-xs">{label}</span>
         <div className={cn("rounded-full p-2", iconColor, bgColor)}>

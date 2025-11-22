@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  AlertCircle,
-  Camera,
-  CheckCircle2,
-  Plus,
-  Star,
-  UsersRound,
-} from "lucide-react";
+import { Camera, Plus, Star, UsersRound } from "lucide-react";
 import { motion } from "motion/react";
+import { RondaStatus } from "@/lib/enum";
 import { HomeHeader } from "./components/home-header";
 import { InvitationCard } from "./components/invitation-card";
 import { RondaCard } from "./components/ronda-card";
@@ -52,7 +46,7 @@ export default function HomePage() {
 
       {/* Create New Ronda Button */}
       <motion.button
-        className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-xl bg-linear-to-b from-primary to-primary/50 p-4 drop-shadow-sm"
+        className="flex w-full cursor-pointer items-center justify-start gap-2 rounded-lg bg-linear-to-b from-primary to-primary/50 p-4 drop-shadow-sm"
         whileTap={{ scale: 0.98 }}
       >
         <div className="flex size-6 items-center justify-center rounded-full bg-foreground">
@@ -73,7 +67,7 @@ export default function HomePage() {
         <div className="flex w-full items-center justify-between">
           <h2 className="font-semibold text-lg text-muted">Invitations</h2>
           <motion.button
-            className="cursor-pointer text-blue-600 text-sm hover:underline"
+            className="cursor-pointer text-primary text-sm hover:underline"
             whileTap={{ scale: 0.98 }}
           >
             View All
@@ -95,25 +89,24 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold text-lg text-muted">Your Rondas</h2>
-          <button
-            className="text-blue-600 text-sm hover:underline"
-            type="button"
+      {/* Your Rondas */}
+      <div className="flex w-full flex-col items-center justify-start gap-3">
+        <div className="flex w-full items-center justify-between">
+          <h2 className="font-semibold text-2xl text-muted">Your Rondas</h2>
+          <motion.button
+            className="cursor-pointer text-primary text-sm hover:underline"
+            whileTap={{ scale: 0.98 }}
           >
             View All
-          </button>
+          </motion.button>
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex w-full flex-col items-center justify-start gap-4">
           <RondaCard
             avatars={["", "", "", ""]}
             currentWeek={4}
             memberCount={12}
             name="College Friends"
-            status="deposit-due"
-            statusIcon={AlertCircle}
-            statusMessage="Deposit Required Make your $50 deposit by Dec 15"
+            status={RondaStatus.DEPOSIT_DUE}
             totalWeeks={7}
             weeklyAmount="$50"
           />
@@ -122,9 +115,7 @@ export default function HomePage() {
             currentWeek={4}
             memberCount={8}
             name="Work Friends Circle"
-            status="active"
-            statusIcon={AlertCircle}
-            statusMessage="Pending Contributions Waiting on 2 people to deposit"
+            status={RondaStatus.ACTIVE}
             totalWeeks={5}
             weeklyAmount="$100"
           />
@@ -133,9 +124,7 @@ export default function HomePage() {
             currentWeek={5}
             memberCount={5}
             name="Family Circle"
-            status="completed"
-            statusIcon={CheckCircle2}
-            statusMessage="Your Ronda is complete! You hit your savings goal"
+            status={RondaStatus.COMPLETED}
             totalWeeks={5}
             weeklyAmount="$200"
           />

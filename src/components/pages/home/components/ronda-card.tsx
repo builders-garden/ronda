@@ -1,12 +1,16 @@
-import { type LucideIcon, Users } from "lucide-react";
+import {
+  CheckCircle2,
+  type LucideIcon,
+  MessageCircleWarning,
+  Users,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { RondaStatus } from "@/lib/enum";
 import { cn } from "@/utils";
-
-type RondaStatus = "deposit-due" | "active" | "completed";
 
 type RondaCardProps = {
   name: string;
@@ -16,8 +20,6 @@ type RondaCardProps = {
   totalWeeks: number;
   status: RondaStatus;
   avatars: string[];
-  statusMessage?: string;
-  statusIcon?: LucideIcon;
   onDeposit?: () => void;
 };
 
@@ -27,26 +29,46 @@ const statusConfig: Record<
     badge: string;
     badgeColor: string;
     iconColor: string;
+    bgIconColor: string;
     progressColor: string;
+    statusMessageTitle: string;
+    statusMessageTitleColor: string;
+    statusMessage: string;
+    statusIcon: LucideIcon;
   }
 > = {
-  "deposit-due": {
+  [RondaStatus.DEPOSIT_DUE]: {
     badge: "Deposit Due",
-    badgeColor: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    iconColor: "text-green-600",
-    progressColor: "bg-blue-500",
+    badgeColor: "bg-warning/10 text-warning border-warning/20",
+    iconColor: "text-success",
+    bgIconColor: "bg-success/10",
+    progressColor: "bg-primary",
+    statusMessageTitleColor: "text-warning",
+    statusMessageTitle: "Deposit Required",
+    statusMessage: "Make your $50 deposit by Dec 15",
+    statusIcon: MessageCircleWarning,
   },
-  active: {
+  [RondaStatus.ACTIVE]: {
     badge: "Active",
-    badgeColor: "bg-green-100 text-green-800 border-green-200",
-    iconColor: "text-blue-600",
-    progressColor: "bg-blue-500",
+    badgeColor: "bg-success/10 text-success border-success/20",
+    iconColor: "text-success",
+    bgIconColor: "bg-success/10",
+    progressColor: "bg-primary",
+    statusMessageTitleColor: "text-secondary",
+    statusMessageTitle: "Pending Contributions",
+    statusMessage: "Waiting on 2 people to deposit",
+    statusIcon: CheckCircle2,
   },
-  completed: {
+  [RondaStatus.COMPLETED]: {
     badge: "Completed",
-    badgeColor: "bg-green-100 text-green-800 border-green-200",
-    iconColor: "text-purple-600",
-    progressColor: "bg-green-500",
+    badgeColor: "bg-success/10 text-success border-success/20",
+    iconColor: "text-success",
+    bgIconColor: "bg-success/10",
+    progressColor: "bg-primary",
+    statusMessageTitleColor: "text-success",
+    statusMessageTitle: "Your Ronda is complete!",
+    statusMessage: "You hit your savings goal",
+    statusIcon: CheckCircle2,
   },
 };
 
@@ -58,113 +80,124 @@ export function RondaCard({
   totalWeeks,
   status,
   avatars,
-  statusMessage,
-  statusIcon: StatusIcon,
   onDeposit,
 }: RondaCardProps) {
   const config = statusConfig[status];
   const progress = (currentWeek / totalWeeks) * 100;
 
   return (
-    <Card className="border-gray-200 bg-white shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className={cn("rounded-full bg-gray-100 p-2", config.iconColor)}
-            >
-              <Users className="size-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-base text-muted">{name}</span>
-              <span className="text-gray-600 text-xs">
-                {memberCount} members • {weeklyAmount}/week
-              </span>
-            </div>
-          </div>
-          <Badge className={cn("text-xs", config.badgeColor)} variant="outline">
-            {config.badge}
-          </Badge>
-        </div>
-
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between text-gray-600 text-xs">
-            <span>
-              {currentWeek} of {totalWeeks} weeks
-            </span>
-          </div>
-          <Progress
-            className={cn("h-2", config.progressColor)}
-            value={progress}
-          />
-        </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <div className="-space-x-2 flex">
-            {avatars.slice(0, 4).map((avatar, index) => (
-              <Avatar
-                className="size-7 border-2 border-white"
-                key={`${name}-${index}-${avatar}`}
-              >
-                <AvatarImage alt="" src={avatar} />
-                <AvatarFallback className="bg-gray-200 text-xs">
-                  {name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
-          {memberCount > 4 && (
-            <span className="text-gray-600 text-xs">+{memberCount - 4}</span>
-          )}
-        </div>
-
-        {statusMessage && (
+    <Card
+      className={cn(
+        "flex w-full flex-col items-center justify-start gap-4 rounded-md border-none p-4 drop-shadow-sm",
+        status === RondaStatus.DEPOSIT_DUE
+          ? "ring-2 ring-warning"
+          : status === RondaStatus.ACTIVE
+            ? "bg-purple-50"
+            : "bg-green-50"
+      )}
+    >
+      <div className="flex w-full items-start justify-between">
+        <div className="flex items-center gap-3">
           <div
             className={cn(
-              "mt-4 flex items-center gap-2 rounded-lg p-3",
-              status === "deposit-due"
-                ? "bg-yellow-50"
-                : status === "active"
-                  ? "bg-purple-50"
-                  : "bg-green-50"
+              "flex size-12 items-center justify-center rounded-full",
+              config.bgIconColor,
+              config.iconColor
             )}
           >
-            {StatusIcon && (
-              <StatusIcon
-                className={cn(
-                  "size-4",
-                  status === "deposit-due"
-                    ? "text-yellow-600"
-                    : status === "active"
-                      ? "text-purple-600"
-                      : "text-green-600"
-                )}
-              />
-            )}
-            <span
-              className={cn(
-                "text-xs",
-                status === "deposit-due"
-                  ? "text-yellow-800"
-                  : status === "active"
-                    ? "text-purple-800"
-                    : "text-green-800"
-              )}
-            >
-              {statusMessage}
+            <Users className="size-6" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-base text-muted">{name}</span>
+            <span className="text-gray-600 text-xs">
+              {memberCount} members • {weeklyAmount}/week
             </span>
           </div>
-        )}
+        </div>
+        <Badge
+          className={cn("border-none font-medium text-xs", config.badgeColor)}
+          variant="outline"
+        >
+          {config.badge}
+        </Badge>
+      </div>
 
-        {status === "deposit-due" && onDeposit && (
-          <Button
-            className="mt-4 w-full bg-orange-500 text-white hover:bg-orange-600"
-            onClick={onDeposit}
-          >
-            Deposit Now
-          </Button>
-        )}
-      </CardContent>
+      <div className="flex w-full flex-col items-start justify-start gap-2">
+        <div className="flex w-full items-center justify-between text-muted text-sm">
+          <span>Progress</span>
+          <span className="font-medium">
+            {currentWeek} of {totalWeeks} weeks
+          </span>
+        </div>
+        <Progress
+          className={cn("h-2", config.progressColor)}
+          value={progress}
+        />
+      </div>
+
+      <div className="flex w-full items-center justify-start">
+        <div className="-space-x-2 flex">
+          {avatars.slice(0, 3).map((avatar, index) => (
+            <Avatar
+              className="size-7 border-[1.5px] border-foreground"
+              key={`${name}-${index}-${avatar}`}
+            >
+              <AvatarImage alt="" src={avatar} />
+              <AvatarFallback className="bg-gray-200 text-xs">
+                {name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+          {memberCount > 3 && (
+            <div className="z-10 flex size-7 items-center justify-center rounded-full border-[1.5px] border-foreground bg-gray-200 text-xs">
+              +{memberCount - 3}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {config.statusMessage && (
+        <div
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-md p-4",
+            status === RondaStatus.DEPOSIT_DUE
+              ? "bg-warning/10"
+              : status === RondaStatus.ACTIVE
+                ? "bg-purple-50"
+                : "bg-success/10"
+          )}
+        >
+          {config.statusIcon && (
+            <config.statusIcon
+              className={cn(
+                "size-6",
+                status === RondaStatus.DEPOSIT_DUE
+                  ? "text-warning"
+                  : status === RondaStatus.ACTIVE
+                    ? "text-secondary"
+                    : "text-success"
+              )}
+            />
+          )}
+          <div className="flex flex-col items-start justify-start">
+            <h3 className={cn("font-medium", config.statusMessageTitleColor)}>
+              {config.statusMessageTitle}
+            </h3>
+            <span className="text-muted-foreground text-xs">
+              {config.statusMessage}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {status === RondaStatus.DEPOSIT_DUE && onDeposit && (
+        <Button
+          className="mt-4 w-full bg-warning px-4 text-xs hover:bg-warning/90"
+          onClick={onDeposit}
+        >
+          Deposit Now
+        </Button>
+      )}
     </Card>
   );
 }

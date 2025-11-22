@@ -20,7 +20,7 @@ export function InvitationCard({
   onDecline,
 }: InvitationCardProps) {
   return (
-    <Card className="flex w-full flex-row items-center justify-between gap-3 border-none p-3 drop-shadow-sm">
+    <Card className="flex w-full flex-row items-center justify-between gap-3 rounded-md border-none p-3 drop-shadow-sm">
       <div className="flex flex-col items-start justify-center gap-1">
         <span className="font-medium text-muted text-sm">{name}</span>
 
