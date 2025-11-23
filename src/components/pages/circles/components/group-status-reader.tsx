@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import type { groups } from "@/lib/database/db.schema";
@@ -23,6 +23,9 @@ export function GroupStatusReader({
 }) {
   const { address: userAddress } = useAccount();
   const groupAddress = group.groupAddress as Address | undefined;
+  const lastStatusRef = useRef<"active" | "deposit_due" | "completed" | null>(
+    null
+  );
 
   // Read onchain data
   const { data: groupInfo } = useGetGroupInfoDetailed(
@@ -59,7 +62,11 @@ export function GroupStatusReader({
       status = "deposit_due";
     }
 
-    onStatusReady(group.id, status);
+    // Only call onStatusReady if status has changed
+    if (lastStatusRef.current !== status) {
+      lastStatusRef.current = status;
+      onStatusReady(group.id, status);
+    }
   }, [
     group.id,
     groupInfo,
