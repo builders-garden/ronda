@@ -79,6 +79,9 @@ export async function POST(
       );
     }
 
+    console.log("groupId", groupId);
+    console.log("newParticipants", newParticipants);
+
     // Insert all new participants
     const insertedParticipants = await db
       .insert(participants)
@@ -86,9 +89,6 @@ export async function POST(
         newParticipants.map((p) => ({
           groupId,
           userAddress: p.userAddress,
-          accepted: p.accepted ?? false,
-          paid: p.paid ?? false,
-          contributed: p.contributed ?? false,
         }))
       )
       .returning();

@@ -249,12 +249,12 @@ function CreateRondaModalContent({
                           } else {
                             toast.success("ROSCA group created successfully");
                           }
-                          handleClose();
+                          setIsCreatingRoscaGroup(false);
                         },
                         onError: (error) => {
                           console.error("Error creating participants:", error);
                           toast.error("Failed to create participants");
-                          handleClose();
+                          setIsCreatingRoscaGroup(false);
                         },
                       }
                     );
@@ -280,6 +280,7 @@ function CreateRondaModalContent({
   useEffect(() => {
     if (deployError) {
       toast.error("Failed to create ROSCA group");
+      console.error("TEST Deployment error:", deployError);
       setIsCreatingRoscaGroup(false);
     }
   }, [deployError]);
