@@ -110,8 +110,6 @@ export default function TestPage() {
     Boolean(effectiveContractAddress)
   );
 
-  console.log(groupInfo);
-
   const { data: groupInfoDetailed, isLoading: isLoadingGroupInfoDetailed } =
     useGetGroupInfoDetailed(
       effectiveContractAddress,
