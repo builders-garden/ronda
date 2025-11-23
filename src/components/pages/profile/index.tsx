@@ -28,8 +28,6 @@ export default function ProfilePage() {
   const username =
     isInMiniApp && context?.user.username ? context.user.username : null;
 
-  const email = user?.email || "";
-
   return (
     <motion.div
       animate={{ opacity: 1 }}
@@ -53,7 +51,6 @@ export default function ProfilePage() {
       <ProfileHeader
         avatarUrl={pfpUrl}
         displayName={displayName}
-        email={email}
         username={username}
       />
 
