@@ -196,25 +196,25 @@ export default function HomePage() {
         {/* Main Content */}
         <div className="flex w-full flex-col items-center justify-start gap-8 px-6 pt-8">
           {/* Summary Cards */}
-          <div className="grid w-full grid-cols-3 gap-4">
+          <div className="grid w-full grid-cols-3 gap-3">
             <SummaryCard
-              bgColor="bg-[rgba(244,244,245,0.5)]"
+              bgColor="bg-muted/5"
               icon={Wallet}
-              iconColor="text-zinc-900"
+              iconColor="text-muted"
               label="Total Saved"
               value={isLoading ? "..." : formatCurrency(totalSaved)}
             />
             <SummaryCard
-              bgColor="bg-[rgba(123,143,245,0.1)]"
+              bgColor="bg-primary/10"
               icon={UsersRound}
-              iconColor="text-[#7b8ff5]"
+              iconColor="text-primary"
               label="Active Circles"
               value={isLoading ? "..." : activeCircles.toString()}
             />
             <SummaryCard
-              bgColor="bg-[rgba(245,158,66,0.1)]"
+              bgColor="bg-warning/10"
               icon={Star}
-              iconColor="text-[#f59e42]"
+              iconColor="text-warning"
               label="Reliability"
               value={isLoading ? "..." : `${reliability}%`}
             />
