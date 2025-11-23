@@ -1,13 +1,19 @@
 import {
+  AlertCircle,
   ArrowLeft,
   Calendar,
   Clock,
+  Loader2,
   type MessageCircle,
+  Users,
   Wallet,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
 import {
   Drawer,
   DrawerContent,
@@ -18,6 +24,11 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RondaStatus } from "@/lib/enum";
+import {
+  useIsMember,
+  useIsUserVerified,
+  useJoinGroup,
+} from "@/lib/smart-contracts/hooks";
 import { cn } from "@/utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -46,6 +57,8 @@ type RondaDrawerProps = {
   triggerClassName?: string;
   children: React.ReactNode;
   asChild?: boolean;
+  // Contract address for verification and joining
+  contractAddress?: Address;
   // Ronda data
   name?: string;
   memberCount?: number;
@@ -136,6 +149,7 @@ export const RondaDrawer = ({
   triggerClassName,
   children,
   asChild,
+  contractAddress,
   name = "Ronda Name",
   memberCount = 12,
   weeklyAmount = "$100/week",
@@ -154,6 +168,7 @@ export const RondaDrawer = ({
   onDeposit,
   onViewAllMembers,
 }: RondaDrawerProps) => {
+  const { address } = useAccount();
   const countdown = useCountdown(depositDeadline);
   const timeRemaining = timeRemainingProp || countdown;
   const progress =
@@ -161,6 +176,73 @@ export const RondaDrawer = ({
   const isDepositDue = status === RondaStatus.DEPOSIT_DUE;
   const isActive = status === RondaStatus.ACTIVE;
   const isCompleted = status === RondaStatus.COMPLETED;
+
+  // Check if user is verified
+  const { data: isVerified, isLoading: isLoadingVerification } =
+    useIsUserVerified(
+      contractAddress,
+      address,
+      Boolean(contractAddress && address)
+    );
+
+  // Check if user is already a member
+  const { data: isMember, isLoading: isLoadingMember } = useIsMember(
+    contractAddress,
+    address,
+    Boolean(contractAddress && address)
+  );
+
+  // Join group hook
+  const {
+    joinGroup,
+    isPending: isJoining,
+    isSuccess: joinSuccess,
+    error: joinError,
+  } = useJoinGroup(contractAddress);
+
+  // Handle join success
+  useEffect(() => {
+    if (joinSuccess) {
+      toast.success("Successfully joined the group!");
+    }
+  }, [joinSuccess]);
+
+  // Handle join error
+  useEffect(() => {
+    if (joinError) {
+      toast.error("Failed to join group. Please try again.");
+      console.error("Join error:", joinError);
+    }
+  }, [joinError]);
+
+  const handleJoin = () => {
+    if (!(contractAddress && address)) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+    try {
+      joinGroup();
+    } catch (error) {
+      console.error("Error joining group:", error);
+      toast.error("Failed to join group");
+    }
+  };
+
+  // Determine if we should show join button or disclaimer
+  const shouldShowJoinButton =
+    contractAddress &&
+    address &&
+    !isLoadingVerification &&
+    !isLoadingMember &&
+    isVerified === true &&
+    isMember === false;
+
+  const shouldShowDisclaimer =
+    contractAddress &&
+    address &&
+    !isLoadingVerification &&
+    !isLoadingMember &&
+    isVerified === false;
 
   const countdownFormatted = formatCountdown(
     timeRemaining.days,
@@ -434,6 +516,53 @@ export const RondaDrawer = ({
               <Wallet className="mr-2 size-5" strokeWidth={2} />
               Deposit {depositAmount} Now
             </Button>
+          </div>
+        )}
+
+        {/* Join Button - Show if verified and not a member */}
+        {shouldShowJoinButton && !isDepositDue && (
+          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+            <Button
+              className="h-16 w-full cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              disabled={isJoining}
+              onClick={handleJoin}
+            >
+              {isJoining ? (
+                <>
+                  <Loader2 className="mr-2 size-5 animate-spin" />
+                  Joining...
+                </>
+              ) : (
+                <>
+                  <Users className="mr-2 size-5" strokeWidth={2} />
+                  Join Group
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* Disclaimer - Show if not verified */}
+        {shouldShowDisclaimer && !isDepositDue && (
+          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+            <Card className="flex w-full flex-col gap-3 rounded-2xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.05)] p-4 shadow-none">
+              <div className="flex items-start gap-3">
+                <AlertCircle
+                  className="mt-0.5 size-5 shrink-0 text-red-500"
+                  strokeWidth={2}
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-[14px] text-red-500 tracking-[-0.35px]">
+                    Verification Required
+                  </span>
+                  <span className="font-normal text-[#6f7780] text-[12px]">
+                    You cannot join this group because you haven't completed the
+                    required identity verification. Please verify your identity
+                    first.
+                  </span>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
       </DrawerContent>

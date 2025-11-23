@@ -6,7 +6,7 @@ import { getServerSession } from "@/utils/better-auth";
 
 const createGroupSchema = z.object({
   name: z.string().min(1),
-  description: z.string().min(1),
+  description: z.string().optional(),
   groupAddress: z.string().min(1),
 });
 
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const parsed = createGroupSchema.safeParse(body);
+    console.log("error", parsed.error);
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.message },
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       .insert(groups)
       .values({
         name: parsed.data.name,
-        description: parsed.data.description,
+        description: parsed.data.description ?? "",
         groupAddress: parsed.data.groupAddress,
         creatorId: session.user.id,
       })

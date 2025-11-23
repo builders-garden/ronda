@@ -132,6 +132,7 @@ export function CircleCard({
   return (
     <RondaDrawer
       asChild
+      contractAddress={address as `0x${string}`}
       isDrawerOpen={isDrawerOpen}
       setIsDrawerOpen={setIsDrawerOpen}
     >

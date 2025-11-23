@@ -1,5 +1,8 @@
 "use client";
 
+import sdk from "@farcaster/miniapp-sdk";
+import { getUniversalLink } from "@selfxyz/core";
+import { SelfAppBuilder } from "@selfxyz/qrcode";
 import {
   ArrowLeft,
   ArrowRight,
@@ -42,19 +45,21 @@ import { Step1BasicInfo } from "./step-1-basic-info";
 import { Step2Contribution } from "./step-2-contribution";
 import { Step3Participants } from "./step-3-participants";
 import { Step4Review } from "./step-4-review";
+import { Step5Success } from "./step-5-success";
 
 type CreateRondaModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const STEP_CONFIG = {
-  1: { title: "Basic Information", icon: FileText, percent: 25, emoji: "👋" },
-  2: { title: "Contribution Setup", icon: Coins, percent: 50, emoji: "✋" },
-  3: { title: "Participants", icon: Users, percent: 75, emoji: "👥" },
-  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "👀" },
+  1: { title: "Basic Information", icon: FileText, percent: 20, emoji: "👋" },
+  2: { title: "Contribution Setup", icon: Coins, percent: 40, emoji: "✋" },
+  3: { title: "Participants", icon: Users, percent: 60, emoji: "👥" },
+  4: { title: "Review & Confirm", icon: Check, percent: 80, emoji: "👀" },
+  5: { title: "Success", icon: Check, percent: 100, emoji: "✅" },
 };
 
 function CreateRondaModalContent({
@@ -70,6 +75,9 @@ function CreateRondaModalContent({
   const [currentStep, setCurrentStep] = useState(1);
   const [showWhatIsRosca, setShowWhatIsRosca] = useState(false);
   const [isCreatingRoscaGroup, setIsCreatingRoscaGroup] = useState(false);
+  const [_createdGroupId, setCreatedGroupId] = useState<string | null>(null);
+  const [deployedContractAddress, setDeployedContractAddress] =
+    useState<Address | null>(null);
 
   const stepConfig = STEP_CONFIG[currentStep as keyof typeof STEP_CONFIG];
   const progress = stepConfig?.percent || 0;
@@ -109,6 +117,84 @@ function CreateRondaModalContent({
     onOpenChange(false);
     setCurrentStep(1);
     resetFormData();
+    setCreatedGroupId(null);
+    setDeployedContractAddress(null);
+  };
+
+  // Verify identity handler
+  const handleVerifyIdentity = async () => {
+    if (!(address && deployedContractAddress)) {
+      toast.error("Missing required information for verification");
+      return;
+    }
+
+    try {
+      // Build disclosures based on form data
+      const disclosures: {
+        nationality?: boolean;
+        gender?: boolean;
+        date_of_birth?: boolean;
+        minimumAge?: number;
+        ofac?: boolean;
+      } = {};
+
+      const verificationType = getVerificationType(formData);
+
+      // If verification type is not NONE, we need disclosures
+      if (verificationType !== 0) {
+        // Nationality is required if allowedNationalities is specified
+        if (
+          formData.nationalityVerification &&
+          formData.allowedNationalities &&
+          formData.allowedNationalities.length > 0
+        ) {
+          disclosures.nationality = true;
+        }
+
+        // Gender is required if gender verification is enabled and not ALL
+        if (
+          formData.genderVerification &&
+          formData.allowedGenders !== Genders.ALL
+        ) {
+          disclosures.gender = true;
+        }
+
+        // Date of birth is required if age verification is enabled
+        if (
+          formData.ageVerification &&
+          formData.minAge &&
+          formData.minAge.trim().length > 0
+        ) {
+          disclosures.date_of_birth = true;
+          disclosures.minimumAge = Number.parseInt(formData.minAge, 10);
+        }
+      }
+
+      // Generate the scope seed (same as used in deployment)
+      const scopeSeed = "ronda-test";
+
+      // Build the Self app
+      const app = new SelfAppBuilder({
+        appName: "Ronda Protocol",
+        scope: scopeSeed,
+        userId: address,
+        userIdType: "hex",
+        endpoint: deployedContractAddress.toLowerCase(),
+        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${deployedContractAddress}?verified=true`,
+        endpointType: "celo",
+        userDefinedData: "Verify your identity to join the group",
+        disclosures,
+      }).build();
+
+      // Get the universal link
+      const deeplink = getUniversalLink(app);
+
+      // Open the Self app
+      await sdk.actions.openUrl(deeplink);
+    } catch (error) {
+      console.error("Error opening Self verification:", error);
+      toast.error("Failed to open verification");
+    }
   };
 
   // The function to create the ROSCA group
@@ -188,6 +274,8 @@ function CreateRondaModalContent({
         return <Step3Participants />;
       case 4:
         return <Step4Review onEditStep={handleEditStep} />;
+      case 5:
+        return <Step5Success onVerifyIdentity={handleVerifyIdentity} />;
       default:
         return null;
     }
@@ -219,6 +307,8 @@ function CreateRondaModalContent({
                 "Deployed contract address from decoded transaction:",
                 deployedAddress
               );
+              // Store the deployed contract address for verification
+              setDeployedContractAddress(deployedAddress);
               createGroup(
                 {
                   name: formData.roscaName,
@@ -249,12 +339,15 @@ function CreateRondaModalContent({
                           } else {
                             toast.success("ROSCA group created successfully");
                           }
-                          handleClose();
+                          setIsCreatingRoscaGroup(false);
+                          setCreatedGroupId(groupId);
+                          // Navigate to success step
+                          setCurrentStep(5);
                         },
                         onError: (error) => {
                           console.error("Error creating participants:", error);
                           toast.error("Failed to create participants");
-                          handleClose();
+                          setIsCreatingRoscaGroup(false);
                         },
                       }
                     );
@@ -280,6 +373,7 @@ function CreateRondaModalContent({
   useEffect(() => {
     if (deployError) {
       toast.error("Failed to create ROSCA group");
+      console.error("TEST Deployment error:", deployError);
       setIsCreatingRoscaGroup(false);
     }
   }, [deployError]);
@@ -290,7 +384,7 @@ function CreateRondaModalContent({
         <DialogContent className="h-[1000px] max-h-screen w-full max-w-[420px] overflow-y-auto rounded-none bg-zinc-100 p-0 [&>button]:hidden">
           {/* Header with backdrop blur */}
           <div className="sticky top-0 z-10 flex h-[69px] items-center justify-between border-[rgba(232,235,237,0.5)] border-b bg-white px-4">
-            {currentStep > 1 ? (
+            {currentStep > 1 && currentStep < 5 ? (
               <button
                 className="flex size-11 items-center justify-center rounded-xl hover:bg-zinc-50"
                 onClick={handleBack}
@@ -311,146 +405,165 @@ function CreateRondaModalContent({
                 RONDA
               </span>
             </div>
-            <DialogClose asChild>
-              <motion.button
-                className="flex size-11 cursor-pointer items-center justify-center rounded-xl text-muted hover:bg-zinc-50"
-                type="button"
-                whileTap={{ scale: 0.98 }}
-              >
-                <Plus className="size-6 rotate-45" />
-              </motion.button>
-            </DialogClose>
+            {currentStep !== 5 ? (
+              <DialogClose asChild>
+                <motion.button
+                  className="flex size-11 cursor-pointer items-center justify-center rounded-xl text-muted hover:bg-zinc-50"
+                  type="button"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Plus className="size-6 rotate-45" />
+                </motion.button>
+              </DialogClose>
+            ) : (
+              <div className="size-11" />
+            )}
           </div>
 
-          <div className="flex flex-col gap-6 px-4 pt-6 pb-4">
+          <div
+            className={cn(
+              "flex flex-col gap-6 px-4 pb-4",
+              currentStep === 5 ? "pt-0" : "pt-6"
+            )}
+          >
             {/* Header */}
-            <DialogHeader className="gap-0">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-left font-semibold text-2xl text-zinc-950 tracking-[-0.6px]">
-                  {currentStep === 4
-                    ? "Summary & Confirmation"
-                    : "Create New Group"}
-                </DialogTitle>
-                {currentStep !== 4 && (
-                  <button
-                    className="flex cursor-pointer items-center gap-1.5 font-medium text-primary text-xs hover:text-primary/80"
-                    onClick={() => setShowWhatIsRosca(true)}
-                    type="button"
-                  >
-                    <Info className="size-4" />
-                    <span>What is a ROSCA?</span>
-                  </button>
-                )}
-              </div>
-            </DialogHeader>
+            {currentStep !== 5 && (
+              <DialogHeader className="gap-0">
+                <div className="flex items-center justify-between">
+                  <DialogTitle className="text-left font-semibold text-2xl text-zinc-950 tracking-[-0.6px]">
+                    {currentStep === 4
+                      ? "Summary & Confirmation"
+                      : "Create New Group"}
+                  </DialogTitle>
+                  {currentStep !== 4 && (
+                    <button
+                      className="flex cursor-pointer items-center gap-1.5 font-medium text-primary text-xs hover:text-primary/80"
+                      onClick={() => setShowWhatIsRosca(true)}
+                      type="button"
+                    >
+                      <Info className="size-4" />
+                      <span>What is a ROSCA?</span>
+                    </button>
+                  )}
+                </div>
+              </DialogHeader>
+            )}
 
-            {/* Progress Card */}
-            <div className="rounded-2xl border border-[rgba(232,235,237,0.3)] bg-white p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10">
-                  <span className="text-2xl">{stepConfig?.emoji || "📝"}</span>
-                </div>
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <p className="font-bold text-base text-zinc-950 tracking-[-0.4px]">
-                        Step {currentStep} of {TOTAL_STEPS}
-                      </p>
-                      <p className="text-[#6f7780] text-sm">
-                        {stepConfig?.title}
-                      </p>
-                    </div>
+            {/* Progress Card - Hide on success step */}
+            {currentStep !== 5 && (
+              <div className="rounded-2xl border border-[rgba(232,235,237,0.3)] bg-white p-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10">
+                    <span className="text-2xl">
+                      {stepConfig?.emoji || "📝"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${progress}%` }}
-                      />
+                  <div className="flex flex-1 flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <p className="font-bold text-base text-zinc-950 tracking-[-0.4px]">
+                          Step {currentStep} of {TOTAL_STEPS - 1}
+                        </p>
+                        <p className="text-[#6f7780] text-sm">
+                          {stepConfig?.title}
+                        </p>
+                      </div>
                     </div>
-                    <p className="font-medium text-muted text-xs">
-                      {progress}%
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="font-medium text-muted text-xs">
+                        {progress}%
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Step Content */}
             {renderStepContent()}
           </div>
 
-          {/* Bottom Bar with Navigation Buttons and Progress Dots */}
-          <div className="sticky bottom-0 flex flex-col gap-4 border-border border-t bg-white p-4">
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-3">
-              <Button
-                className="h-12 flex-1 rounded-2xl border-0 bg-[rgba(244,244,245,0.5)] font-semibold text-sm text-zinc-950 tracking-[-0.35px] hover:bg-[rgba(244,244,245,0.7)]"
-                disabled={currentStep === 1}
-                onClick={handleBack}
-                variant="outline"
-              >
-                <ArrowLeft className="size-5" />
-                Back
-              </Button>
-              {currentStep === TOTAL_STEPS ? (
+          {/* Bottom Bar with Navigation Buttons and Progress Dots - Hide on success step */}
+          {currentStep !== 5 && (
+            <div className="sticky bottom-0 flex flex-col gap-4 border-border border-t bg-white p-4">
+              {/* Navigation Buttons */}
+              <div className="flex items-center gap-3">
                 <Button
-                  className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
-                  disabled={isCreatingRoscaGroup}
-                  onClick={handleCreateRosca}
+                  className="h-12 flex-1 rounded-2xl border-0 bg-[rgba(244,244,245,0.5)] font-semibold text-sm text-zinc-950 tracking-[-0.35px] hover:bg-[rgba(244,244,245,0.7)]"
+                  disabled={currentStep === 1}
+                  onClick={handleBack}
+                  variant="outline"
                 >
-                  <AnimatePresence mode="wait">
-                    {isCreatingRoscaGroup ? (
-                      <motion.div
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-2"
-                        exit={{ opacity: 0 }}
-                        initial={{ opacity: 0 }}
-                        key="creating-rosca-group"
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                      >
-                        <Loader2 className="size-5 animate-spin" />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-2"
-                        exit={{ opacity: 0 }}
-                        initial={{ opacity: 0 }}
-                        key="create-rosca-group"
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                      >
-                        Create ROSCA
-                        <Check className="size-5" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <ArrowLeft className="size-5" />
+                  Back
                 </Button>
-              ) : (
-                <Button
-                  className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
-                  disabled={!canProceedFromStep(currentStep)}
-                  onClick={handleNext}
-                >
-                  Next
-                  <ArrowRight className="size-5" />
-                </Button>
-              )}
-            </div>
+                {currentStep === 4 ? (
+                  <Button
+                    className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+                    disabled={isCreatingRoscaGroup}
+                    onClick={handleCreateRosca}
+                  >
+                    <AnimatePresence mode="wait">
+                      {isCreatingRoscaGroup ? (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-2"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="creating-rosca-group"
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                        >
+                          <Loader2 className="size-5 animate-spin" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-2"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="create-rosca-group"
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                        >
+                          Create ROSCA
+                          <Check className="size-5" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                ) : (
+                  <Button
+                    className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+                    disabled={!canProceedFromStep(currentStep)}
+                    onClick={handleNext}
+                  >
+                    Next
+                    <ArrowRight className="size-5" />
+                  </Button>
+                )}
+              </div>
 
-            {/* Pagination Dots */}
-            <div className="flex items-center justify-center gap-2">
-              {Array.from({ length: TOTAL_STEPS }).map((_, index) => (
-                <div
-                  className={cn(
-                    "size-2 rounded-full transition-colors",
-                    index + 1 === currentStep ? "bg-[#7b8ff5]" : "bg-[#e8ebed]"
-                  )}
-                  key={`step-${index + 1}`}
-                />
-              ))}
+              {/* Pagination Dots */}
+              <div className="flex items-center justify-center gap-2">
+                {Array.from({ length: TOTAL_STEPS - 1 }).map((_, index) => (
+                  <div
+                    className={cn(
+                      "size-2 rounded-full transition-colors",
+                      index + 1 === currentStep
+                        ? "bg-[#7b8ff5]"
+                        : "bg-[#e8ebed]"
+                    )}
+                    key={`step-${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
