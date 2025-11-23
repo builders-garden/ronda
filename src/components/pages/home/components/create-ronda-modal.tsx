@@ -39,7 +39,12 @@ import {
   useDeployRondaProtocol,
   type VerificationConfig,
 } from "@/lib/smart-contracts/use-deploy-ronda-protocol";
-import { cn, frequencyToSeconds, getVerificationType } from "@/utils";
+import {
+  cn,
+  frequencyToSeconds,
+  getVerificationType,
+  normalizeToSlug,
+} from "@/utils";
 import { CreateRondaProvider, useCreateRonda } from "./create-ronda-context";
 import { Step1BasicInfo } from "./step-1-basic-info";
 import { Step2Contribution } from "./step-2-contribution";
@@ -328,7 +333,7 @@ function CreateRondaModalContent({
               // Now create the group record in the database
               createGroup(
                 {
-                  name: formData.roscaName,
+                  name: normalizeToSlug(formData.roscaName),
                   description: formData.description,
                   creatorId: user?.id || "",
                   groupAddress: deployedAddress,

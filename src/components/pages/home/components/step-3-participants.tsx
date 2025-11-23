@@ -507,7 +507,6 @@ export function Step3Participants() {
                                 <p className="text-[#6f7780] text-xs">
                                   {country.region}
                                 </p>
-                                <span className="text-[#6f7780]">•</span>
                               </div>
                             </div>
                           </button>

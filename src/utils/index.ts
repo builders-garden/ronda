@@ -194,6 +194,15 @@ export function getInitials(name: string): string {
 }
 
 /**
+ * Normalize a string to a slug format by trimming and replacing whitespace with dashes
+ * @param text - The text to normalize
+ * @returns The normalized slug string
+ */
+export function normalizeToSlug(text: string): string {
+  return text.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+/**
  * Converts a frequency enum value to seconds
  * @param frequency - The frequency enum value
  * @returns The number of seconds for the given frequency
