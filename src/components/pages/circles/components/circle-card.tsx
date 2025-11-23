@@ -25,6 +25,7 @@ type CircleCardProps = {
   status: CircleStatus;
   avatars: string[];
   initialContent?: CirclesPageContent;
+  createdDate?: string;
 };
 
 const statusConfig: Record<
@@ -105,6 +106,7 @@ export function CircleCard({
   status,
   avatars,
   initialContent,
+  createdDate,
 }: CircleCardProps) {
   const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
     usePageContent();
@@ -132,7 +134,10 @@ export function CircleCard({
     <RondaDrawer
       asChild
       contractAddress={address as `0x${string}`}
+      createdDate={createdDate}
       isDrawerOpen={isDrawerOpen}
+      memberCount={memberCount}
+      name={name}
       setIsDrawerOpen={setIsDrawerOpen}
     >
       <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">

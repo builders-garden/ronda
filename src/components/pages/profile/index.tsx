@@ -25,7 +25,8 @@ export default function ProfilePage() {
       ? context.user.displayName
       : user?.name || "User";
 
-  const email = user?.email || "";
+  const username =
+    isInMiniApp && context?.user.username ? context.user.username : null;
 
   return (
     <motion.div
@@ -47,7 +48,11 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Header */}
-      <ProfileHeader avatarUrl={pfpUrl} email={email} name={displayName} />
+      <ProfileHeader
+        avatarUrl={pfpUrl}
+        displayName={displayName}
+        username={username}
+      />
 
       {/* Stats Grid */}
       <ProfileStats />

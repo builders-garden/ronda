@@ -55,7 +55,7 @@ export default function AppContent({
   }
 
   return (
-    <div className="relative flex h-full min-h-screen flex-col items-center justify-center">
+    <div className="relative flex h-full min-h-screen flex-col items-center justify-start">
       <AnimatePresence mode="wait">
         {isAuthLoading ? (
           <LoadingPage key="loading" />

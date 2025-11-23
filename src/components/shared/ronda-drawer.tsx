@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Address } from "viem";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import {
   Drawer,
@@ -25,6 +26,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RondaStatus } from "@/lib/enum";
 import {
+  useGetGroupInfoDetailed,
+  useGetPeriodDeposits,
+  useHasUserDepositedCurrentPeriod,
   useIsMember,
   useIsUserVerified,
   useJoinGroup,
@@ -35,6 +39,9 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { ProfileCard } from "./profile-card";
+
+// USDC has 6 decimals
+const USDC_DECIMALS = 6;
 
 type Member = {
   name: string;
@@ -150,17 +157,17 @@ export const RondaDrawer = ({
   children,
   asChild,
   contractAddress,
-  name = "Ronda Name",
-  memberCount = 12,
-  weeklyAmount = "$100/week",
-  status = RondaStatus.ACTIVE,
-  potAmount = "$600.00",
-  nextPayout = "Dec 1st",
-  currentWeek = 3,
-  totalWeeks = 8,
-  createdDate = "Dec 1, 2024",
+  name: nameProp,
+  memberCount: memberCountProp,
+  weeklyAmount: weeklyAmountProp,
+  status: statusProp,
+  potAmount: potAmountProp,
+  nextPayout: nextPayoutProp,
+  currentWeek: currentWeekProp,
+  totalWeeks: totalWeeksProp,
+  createdDate: createdDateProp,
   progress: progressProp,
-  depositAmount = "$50",
+  depositAmount: depositAmountProp,
   depositDeadline,
   timeRemaining: timeRemainingProp,
   members,
@@ -169,6 +176,123 @@ export const RondaDrawer = ({
   onViewAllMembers,
 }: RondaDrawerProps) => {
   const { address } = useAccount();
+
+  // Fetch on-chain data
+  const { data: groupInfo } = useGetGroupInfoDetailed(
+    contractAddress,
+    !!contractAddress
+  );
+  const { data: hasDeposited } = useHasUserDepositedCurrentPeriod(
+    contractAddress,
+    address,
+    !!contractAddress && !!address
+  );
+
+  // Get current period deposits for pot amount
+  const currentOperationIndex = useMemo(
+    () => groupInfo?.currentOperationIndex,
+    [groupInfo]
+  );
+
+  const { data: periodDeposits } = useGetPeriodDeposits(
+    contractAddress,
+    currentOperationIndex,
+    !!contractAddress && currentOperationIndex !== undefined
+  );
+
+  // Compute values from on-chain data
+  const recurringAmount = useMemo(() => {
+    if (!groupInfo) {
+      console.log("No group info");
+      return 0;
+    }
+    return Number(
+      formatUnits(groupInfo.recurringAmount ?? BigInt(0), USDC_DECIMALS)
+    );
+  }, [groupInfo]);
+
+  const weeklyAmount = weeklyAmountProp ?? `$${recurringAmount.toFixed(0)}`;
+  const depositAmount = depositAmountProp ?? `$${recurringAmount.toFixed(0)}`;
+
+  const totalWeeks =
+    totalWeeksProp ?? (groupInfo ? Number(groupInfo.operationCounter) : 8);
+  const currentWeek =
+    currentWeekProp ??
+    (groupInfo
+      ? Math.min(Number(groupInfo.currentOperationIndex) + 1, totalWeeks)
+      : 3);
+
+  // Calculate pot amount from on-chain data
+  const potAmount = useMemo(() => {
+    if (potAmountProp) {
+      console.log("Pot amount prop", potAmountProp);
+      return potAmountProp;
+    }
+
+    if (periodDeposits) {
+      const deposits = Number(
+        formatUnits(periodDeposits as bigint, USDC_DECIMALS)
+      );
+      return `$${deposits.toFixed(2)}`;
+    }
+
+    // Fallback: estimate based on recurring amount and current week
+    const estimatedPot = recurringAmount * currentWeek;
+    return `$${estimatedPot.toFixed(2)}`;
+  }, [potAmountProp, periodDeposits, recurringAmount, currentWeek]);
+
+  // Calculate next payout date based on deposit frequency
+  const nextPayout = useMemo(() => {
+    if (nextPayoutProp) {
+      console.log("Next payout prop", nextPayoutProp);
+      return nextPayoutProp;
+    }
+
+    if (!groupInfo) {
+      console.log("No group info");
+      return "TBD";
+    }
+
+    const depositFrequencyDays =
+      Number(groupInfo.depositFrequency) / (24 * 60 * 60);
+    const nextPayoutDate = new Date();
+    nextPayoutDate.setDate(
+      nextPayoutDate.getDate() + Math.ceil(depositFrequencyDays)
+    );
+
+    return nextPayoutDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }, [nextPayoutProp, groupInfo]);
+
+  // Determine status from on-chain data
+  const status = useMemo(() => {
+    if (statusProp) {
+      console.log("Status prop", statusProp);
+      return statusProp;
+    }
+
+    if (!groupInfo) {
+      console.log("No group info");
+      return RondaStatus.ACTIVE;
+    }
+
+    if (currentWeek >= totalWeeks) {
+      return RondaStatus.COMPLETED;
+    }
+
+    if (!hasDeposited && address) {
+      return RondaStatus.DEPOSIT_DUE;
+    }
+
+    return RondaStatus.ACTIVE;
+  }, [statusProp, groupInfo, currentWeek, totalWeeks, hasDeposited, address]);
+
+  const name = nameProp ?? "Ronda Name";
+  const memberCount = memberCountProp ?? 12;
+  const createdDate = createdDateProp ?? "Dec 1, 2024";
+
   const countdown = useCountdown(depositDeadline);
   const timeRemaining = timeRemainingProp || countdown;
   const progress =

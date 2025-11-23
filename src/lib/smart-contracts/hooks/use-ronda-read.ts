@@ -37,13 +37,31 @@ export type UserDepositStatus = {
   totalPeriods: bigint;
 };
 
+// Helper function to convert the array return value to a typed object
+function parseGroupInfo(data: readonly unknown[]): GroupInfo {
+  return {
+    creator: data[0] as Address,
+    verificationType: data[1] as VerificationType,
+    depositFrequency: data[2] as bigint,
+    borrowFrequency: data[3] as bigint,
+    recurringAmount: data[4] as bigint,
+    operationCounter: data[5] as bigint,
+    currentOperationIndex: data[6] as bigint,
+    lastDepositTime: data[7] as bigint,
+    lastBorrowTime: data[8] as bigint,
+    minAge: data[9] as bigint,
+    allowedNationalities: data[10] as string[],
+    requiredGender: data[11] as string,
+  };
+}
+
 // Hook to get basic group info
 // Note: This function doesn't take groupId - it's called on the contract instance
 export function useGetGroupInfo(
   contractAddress: Address | undefined,
   enabled = true
 ) {
-  return useReadContract({
+  const result = useReadContract({
     address: contractAddress,
     abi: RONDA_PROTOCOL_ABI,
     functionName: "getGroupInfo",
@@ -53,6 +71,33 @@ export function useGetGroupInfo(
       enabled: enabled && contractAddress !== undefined,
     },
   });
+
+  return {
+    ...result,
+    data: result.data
+      ? parseGroupInfo(result.data as readonly unknown[])
+      : undefined,
+  };
+}
+
+// Helper function to convert the array return value to a typed object
+function parseGroupInfoDetailed(data: readonly unknown[]): GroupInfoDetailed {
+  return {
+    creator: data[0] as Address,
+    verificationType: data[1] as VerificationType,
+    depositFrequency: data[2] as bigint,
+    borrowFrequency: data[3] as bigint,
+    recurringAmount: data[4] as bigint,
+    operationCounter: data[5] as bigint,
+    currentOperationIndex: data[6] as bigint,
+    lastDepositTime: data[7] as bigint,
+    lastBorrowTime: data[8] as bigint,
+    minAge: data[9] as bigint,
+    allowedNationalities: data[10] as string[],
+    requiredGender: data[11] as string,
+    currentPeriodDeposits: data[12] as bigint,
+    exists: data[13] as boolean,
+  };
 }
 
 // Hook to get detailed group info
@@ -61,7 +106,7 @@ export function useGetGroupInfoDetailed(
   contractAddress: Address | undefined,
   enabled = true
 ) {
-  return useReadContract({
+  const result = useReadContract({
     address: contractAddress,
     abi: RONDA_PROTOCOL_ABI,
     functionName: "getGroupInfoDetailed",
@@ -71,6 +116,13 @@ export function useGetGroupInfoDetailed(
       enabled: enabled && contractAddress !== undefined,
     },
   });
+
+  return {
+    ...result,
+    data: result.data
+      ? parseGroupInfoDetailed(result.data as readonly unknown[])
+      : undefined,
+  };
 }
 
 // Hook to check if user has deposited in a specific period
@@ -151,6 +203,14 @@ export function useHasUserDepositedInPeriod(
   });
 }
 
+// Helper function to convert the array return value to a typed object
+function parseUserDepositStatus(data: readonly unknown[]): UserDepositStatus {
+  return {
+    depositedPeriods: data[0] as boolean[],
+    totalPeriods: data[1] as bigint,
+  };
+}
+
 // Hook to get user deposit status for all periods
 // Note: Only takes _user parameter (no groupId needed)
 export function useGetUserDepositStatusForAllPeriods(
@@ -158,7 +218,7 @@ export function useGetUserDepositStatusForAllPeriods(
   user: Address | undefined,
   enabled = true
 ) {
-  return useReadContract({
+  const result = useReadContract({
     address: contractAddress,
     abi: RONDA_PROTOCOL_ABI,
     functionName: "getUserDepositStatusForAllPeriods",
@@ -169,6 +229,13 @@ export function useGetUserDepositStatusForAllPeriods(
       enabled: enabled && contractAddress !== undefined && user !== undefined,
     },
   });
+
+  return {
+    ...result,
+    data: result.data
+      ? parseUserDepositStatus(result.data as readonly unknown[])
+      : undefined,
+  };
 }
 
 // Hook to get period deposits
