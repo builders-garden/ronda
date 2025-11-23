@@ -25,6 +25,9 @@ export default function ProfilePage() {
       ? context.user.displayName
       : user?.name || "User";
 
+  const username =
+    isInMiniApp && context?.user.username ? context.user.username : null;
+
   const email = user?.email || "";
 
   return (
@@ -47,7 +50,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Header */}
-      <ProfileHeader avatarUrl={pfpUrl} email={email} name={displayName} />
+      <ProfileHeader
+        avatarUrl={pfpUrl}
+        displayName={displayName}
+        email={email}
+        username={username}
+      />
 
       {/* Stats Grid */}
       <ProfileStats />
