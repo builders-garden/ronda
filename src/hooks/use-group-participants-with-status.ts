@@ -47,6 +47,7 @@ export const useGroupParticipantsWithStatus = (
     data: participantsData,
     isLoading: isLoadingParticipants,
     error: participantsError,
+    refetch,
   } = useGroupParticipants({
     groupId,
     enabled: enabled && !!groupId,
@@ -101,6 +102,7 @@ export const useGroupParticipantsWithStatus = (
     participants: participantsWithStatus,
     isLoading: isLoadingParticipants,
     error: participantsError,
+    refetch,
     groupInfo,
   };
 };
