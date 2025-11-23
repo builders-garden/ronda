@@ -2,7 +2,9 @@ import { type ClassValue, clsx } from "clsx";
 import { formatDistance } from "date-fns";
 import ky from "ky";
 import { twMerge } from "tailwind-merge";
+import type { CreateRondaFormData } from "@/components/pages/home/components/create-ronda-context";
 import { ADMIN_FIDS } from "@/lib/constants";
+import { Frequency, VerificationType } from "@/lib/enum";
 import { env } from "@/lib/env";
 
 /**
@@ -191,9 +193,6 @@ export function getInitials(name: string): string {
     .join("");
 }
 
-import type { CreateRondaFormData } from "@/components/pages/home/components/create-ronda-context";
-import { Frequency, VerificationType } from "@/lib/enum";
-
 /**
  * Converts a frequency enum value to seconds
  * @param frequency - The frequency enum value
@@ -203,6 +202,8 @@ export function frequencyToSeconds(frequency: Frequency): number {
   const secondsPerDay = 24 * 60 * 60;
 
   switch (frequency) {
+    case Frequency.DEMO:
+      return 60; // 60 seconds
     case Frequency.WEEKLY:
       return 7 * secondsPerDay; // 7 days
     case Frequency.BIWEEKLY:

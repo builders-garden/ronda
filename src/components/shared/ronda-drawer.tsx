@@ -248,7 +248,6 @@ export const RondaDrawer = ({
   // Calculate pot amount from on-chain data using currentPeriodDeposits from groupInfo
   const potAmount = useMemo(() => {
     if (potAmountProp) {
-      console.log("Pot amount prop", potAmountProp);
       return potAmountProp;
     }
 
@@ -272,7 +271,6 @@ export const RondaDrawer = ({
   // Calculate next payout date based on smart contract deadline
   const nextPayout = useMemo(() => {
     if (nextPayoutProp) {
-      console.log("Next payout prop", nextPayoutProp);
       return nextPayoutProp;
     }
 
@@ -286,7 +284,6 @@ export const RondaDrawer = ({
     }
 
     if (!groupInfo) {
-      console.log("No group info");
       return "TBD";
     }
 
@@ -307,7 +304,6 @@ export const RondaDrawer = ({
   // Determine status from on-chain data
   const status = useMemo(() => {
     if (statusProp) {
-      console.log("Status prop", statusProp);
       return statusProp;
     }
 
@@ -1178,9 +1174,9 @@ export const RondaDrawer = ({
 
         {/* Join Button - Show if verified and not a member */}
         {shouldShowJoinButton && !isDepositDue && (
-          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+          <div className="sticky bottom-0 flex w-full gap-3 border-border border-t bg-white p-4">
             <Button
-              className="h-16 w-full cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              className="h-16 w-[48%] cursor-pointer rounded-[24px] bg-transparent font-semibold text-[16px] text-muted tracking-[-0.4px] shadow-sm hover:bg-muted-foreground/5 disabled:opacity-50"
               disabled={isJoining}
               onClick={(e) => {
                 e.stopPropagation();
@@ -1190,7 +1186,7 @@ export const RondaDrawer = ({
               Decline
             </Button>
             <Button
-              className="h-16 flex-1 cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              className="h-16 w-1/2 cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
               disabled={isJoining}
               onClick={(e) => {
                 e.stopPropagation();

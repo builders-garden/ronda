@@ -1,15 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
+import type { QueryObserverResult } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
+import { useAccount } from "wagmi";
 import { InvitationCard } from "@/components/pages/home/components/invitation-card";
 import { useGroupParticipants } from "@/hooks/use-group-participants";
+import type { UserGroupsResponse } from "@/hooks/use-user-groups";
 import type { groups } from "@/lib/database/db.schema";
 import type { CirclesPageContent } from "@/lib/enum";
 import {
   useGetGroupInfoDetailed,
   useGetPeriodDeposits,
+  useJoinGroup,
 } from "@/lib/smart-contracts/hooks";
 
 // USDC has 6 decimals
@@ -29,16 +34,32 @@ export type InvitationCardData = {
   currentWeek?: number;
   createdDate?: string;
   initialContent?: CirclesPageContent;
+  refetchUserGroups?: () => Promise<
+    QueryObserverResult<UserGroupsResponse, Error>
+  >;
 };
 
 export function InvitationCardWithData({
   group,
   initialContent,
+  refetchUserGroups,
 }: {
   group: Group;
   initialContent?: CirclesPageContent;
+  refetchUserGroups?: () => Promise<
+    QueryObserverResult<UserGroupsResponse, Error>
+  >;
 }) {
+  const { address } = useAccount();
+  const [isJoining, setIsJoining] = useState(false);
   const groupAddress = group.groupAddress as Address | undefined;
+
+  // Join group hook
+  const {
+    joinGroup,
+    isSuccess: joinSuccess,
+    error: joinError,
+  } = useJoinGroup(groupAddress);
 
   // Fetch participants for member count
   const { data: participantsData } = useGroupParticipants({
@@ -149,6 +170,41 @@ export function InvitationCardWithData({
     participantsData,
   ]);
 
+  const handleJoin = () => {
+    if (!(groupAddress && address)) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+    try {
+      setIsJoining(true);
+      joinGroup();
+    } catch (error) {
+      console.error("Error joining group:", error);
+      setIsJoining(false);
+      toast.error("Failed to join group");
+    }
+  };
+
+  // Handle join success
+  useEffect(() => {
+    const handleJoinSuccess = async () => {
+      if (joinSuccess) {
+        await refetchUserGroups?.();
+        setIsJoining(false);
+        toast.success("Successfully joined the group!");
+      }
+    };
+    handleJoinSuccess();
+  }, [joinSuccess, refetchUserGroups]);
+
+  // Handle join error
+  useEffect(() => {
+    if (joinError) {
+      setIsJoining(false);
+      toast.error("Failed to join group");
+    }
+  }, [joinError]);
+
   if (!cardData) {
     return null;
   }
@@ -162,9 +218,11 @@ export function InvitationCardWithData({
       dueDate={cardData.dueDate}
       groupId={group.id}
       initialContent={initialContent}
+      isJoining={isJoining}
       memberCount={cardData.memberCount}
       name={cardData.name}
       nextPayout={cardData.nextPayout}
+      onAccept={handleJoin}
       potAmount={cardData.potAmount}
       totalWeeks={cardData.totalWeeks}
       weeklyAmount={cardData.weeklyAmount}

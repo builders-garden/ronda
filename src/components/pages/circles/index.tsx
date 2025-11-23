@@ -205,10 +205,10 @@ export default function CirclesPage({
 
       {/* Tabs */}
       <Tabs className="w-full" onValueChange={setActiveTab} value={activeTab}>
-        <div className="border-border/50 border-b px-6 py-6">
-          <TabsList className="h-auto w-auto bg-transparent p-0">
+        <div className="px-6 pt-6">
+          <TabsList className="h-auto w-full bg-transparent p-0">
             <TabsTrigger
-              className="relative h-6 rounded-none border-0 bg-transparent px-0 pr-7 pb-[22px] font-semibold text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
+              className="relative h-6 w-full shrink-0 cursor-pointer rounded-none border-0 bg-transparent pb-[22px] font-semibold text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
               value="active"
             >
               Active
@@ -220,7 +220,7 @@ export default function CirclesPage({
               )}
             </TabsTrigger>
             <TabsTrigger
-              className="relative h-6 rounded-none border-0 bg-transparent px-0 pr-7 pb-[22px] font-medium text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
+              className="relative h-6 w-full shrink-0 cursor-pointer rounded-none border-0 bg-transparent pb-[22px] font-medium text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
               value="completed"
             >
               Completed
@@ -232,7 +232,7 @@ export default function CirclesPage({
               )}
             </TabsTrigger>
             <TabsTrigger
-              className="relative h-6 rounded-none border-0 bg-transparent px-0 pb-[22px] font-medium text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
+              className="relative h-6 w-full shrink-0 cursor-pointer rounded-none border-0 bg-transparent pb-[22px] font-medium text-[14px] text-muted-foreground shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-muted data-[state=active]:shadow-none"
               value="invites"
             >
               Invites

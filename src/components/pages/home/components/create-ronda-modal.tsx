@@ -55,10 +55,10 @@ type CreateRondaModalProps = {
 const TOTAL_STEPS = 5;
 
 const STEP_CONFIG = {
-  1: { title: "Basic Information", icon: FileText, percent: 20, emoji: "👋" },
-  2: { title: "Contribution Setup", icon: Coins, percent: 40, emoji: "✋" },
-  3: { title: "Participants", icon: Users, percent: 60, emoji: "👥" },
-  4: { title: "Review & Confirm", icon: Check, percent: 80, emoji: "👀" },
+  1: { title: "Basic Information", icon: FileText, percent: 25, emoji: "👋" },
+  2: { title: "Contribution Setup", icon: Coins, percent: 50, emoji: "✋" },
+  3: { title: "Participants", icon: Users, percent: 75, emoji: "👥" },
+  4: { title: "Review & Confirm", icon: Check, percent: 100, emoji: "👀" },
   5: { title: "Success", icon: Check, percent: 100, emoji: "✅" },
 };
 
@@ -443,7 +443,7 @@ function CreateRondaModalContent({
           <div
             className={cn(
               "flex flex-col gap-6 px-4 pb-4",
-              currentStep === 5 ? "pt-0" : "pt-6"
+              currentStep === 5 ? "pt-0" : "pt-4"
             )}
           >
             {/* Header */}
@@ -462,7 +462,7 @@ function CreateRondaModalContent({
                       type="button"
                     >
                       <Info className="size-4" />
-                      <span>What is a ROSCA?</span>
+                      <span className="shrink-0">What is a ROSCA?</span>
                     </button>
                   )}
                 </div>
