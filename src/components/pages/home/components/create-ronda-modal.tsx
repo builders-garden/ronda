@@ -345,6 +345,7 @@ function CreateRondaModalContent({
                         participants: formData.participants.map(
                           (participant) => ({
                             userAddress: participant.address,
+                            farcasterFid: participant.fid ?? undefined,
                           })
                         ),
                       },
