@@ -184,7 +184,7 @@ function CreateRondaModalContent({
         userId: address,
         userIdType: "hex",
         endpoint: deployedContractAddress.toLowerCase(),
-        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${deployedContractAddress}?verified=true`,
+        deeplinkCallback: `https://farcaster.xyz/miniapps/mGTDYvfxafSb/ronda/circles/${deployedContractAddress}?verified=true`,
         endpointType: "celo",
         userDefinedData: "Verify your identity to join the group",
         disclosures,

@@ -725,7 +725,7 @@ export const RondaDrawer = ({
         userId: address,
         userIdType: "hex",
         endpoint: contractAddress.toLowerCase(),
-        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
+        deeplinkCallback: `https://farcaster.xyz/miniapps/mGTDYvfxafSb/ronda/circles/${contractAddress}?verified=true`,
         endpointType: "celo",
         userDefinedData: "Verify your identity to join the group",
         disclosures,
