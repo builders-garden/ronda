@@ -728,8 +728,7 @@ export const RondaDrawer = ({
                 />
               </div>
 
-              {/* Deposit Success Banner - Show when user has deposited this period */}
-              {hasDeposited && address && (
+              {hasDeposited && address ? (
                 <div className="flex items-center justify-between rounded-2xl border border-[rgba(107,155,122,0.6)] bg-emerald-500/80 p-4">
                   <div className="flex items-center gap-2">
                     <div className="flex size-5 items-center justify-center rounded-full bg-[#6b9b7a]">
@@ -751,7 +750,7 @@ export const RondaDrawer = ({
                     Paid
                   </Badge>
                 </div>
-              )}
+              ) : null}
 
               {/* Deposit Deadline Card */}
               {isDepositDue && (
