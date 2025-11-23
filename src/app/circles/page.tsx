@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { App } from "@/components/pages/app";
+import App from "@/components/pages/app/app";
 import { type CirclesPageContent, MainPageContent } from "@/lib/enum";
 import { env } from "@/lib/env";
 

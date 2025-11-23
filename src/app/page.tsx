@@ -1,4 +1,4 @@
-import { App } from "@/components/pages/app";
+import App from "@/components/pages/app/app";
 import { MainPageContent } from "@/lib/enum";
 
 export default function Home() {

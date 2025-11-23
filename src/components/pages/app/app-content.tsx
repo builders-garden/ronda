@@ -18,7 +18,11 @@ import HomePage from "../home";
 import LoadingPage from "../loading";
 import ProfilePage from "../profile";
 
-export function App({ initialContent }: { initialContent: PageContent }) {
+export default function AppContent({
+  initialContent,
+}: {
+  initialContent?: PageContent;
+}) {
   const {
     user,
     isAuthenticated,
