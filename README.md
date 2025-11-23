@@ -30,9 +30,7 @@ When users open Ronda within a Farcaster client, they authenticate using Sign-In
 
 ## Sponsor Bounties
 
-- **Farcaster**: Ronda is built as a native Farcaster mini app, leveraging Sign-In With Farcaster (SIWF) for seamless authentication and the Farcaster Mini App SDK for deep integration within Farcaster clients. The app uses Farcaster's notification system to keep users informed about group activities, contributions, and payouts. User profiles are enriched with Farcaster data including usernames, display names, and profile pictures.
-
-- **Self.xyz**: Ronda integrates Self.xyz for optional identity verification, allowing group creators to require proof of personhood, age verification, nationality verification, and gender verification. This enables trustless ROSCA groups with verified participants, reducing the risk of fraud and ensuring compliance with group requirements. The verification system is seamlessly integrated into the group creation flow with QR code-based verification.
+- **Self.xyz**: Ronda integrates Self.xyz for optional identity verification, allowing group creators to require proof of personhood, age verification, nationality verification, and gender verification. This enables trustless ROSCA groups with verified participants, reducing the risk of fraud and ensuring compliance with group requirements without violating the privacy.
 
 - **Celo**: Ronda smart contracts are deployed on Celo blockchain, leveraging its low transaction costs and fast finality for efficient ROSCA operations. The protocol uses USDC on Celo for contributions and payouts, and integrates with Aave for yield generation on deposited funds.
 
@@ -300,7 +298,14 @@ pnpm build
 
 ## Contact
 
-Built by [blackicon.eth](https://www.x.com/TBlackicon)
+[blackicon.eth](https://farcaster.xyz/blackicon.eth)
+[limone.eth](https://farcaster.xyz/limone.eth)
+[frankk.eth](https://farcaster.xyz/frankk)
+[itsmide.eth](https://farcaster.xyz/itsmide.eth)
+
+## Built At
+
+ETHGlobal Buenos Aires (2025)
 
 ## License
 

@@ -1145,45 +1145,6 @@ export const RondaDrawer = ({
           </div>
         </ScrollArea>
 
-        {/* Join Button - Show if not a member */}
-        {shouldShowDepositButton && (
-          <div
-            className="flex w-full shrink-0 gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <Button
-              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
-              disabled={isDepositing}
-              onClick={onDeposit}
-            >
-              <AnimatePresence mode="wait">
-                {isDepositing ? (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="flex items-center justify-center"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                    key="depositing"
-                  >
-                    <Loader2 className="mr-2 size-5 animate-spin" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="flex items-center justify-center"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                    key="deposit-now"
-                  >
-                    <Wallet className="mr-2 size-5" strokeWidth={2} />
-                    Deposit {depositAmount} Now
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Button>
-          </div>
-        )}
-
         {/* Join Button - Show if verified and not a member */}
         {shouldShowJoinButton && !isDepositDue && (
           <div className="sticky bottom-0 flex w-full gap-3 border-border border-t bg-white p-4">
