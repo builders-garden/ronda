@@ -50,22 +50,22 @@ const statusConfig: Record<
   deposit_due: {
     badge: "ACTIVE",
     badgeVariant: "default",
-    badgeClassName: "bg-zinc-950/5 text-zinc-900 border-0",
-    alertBg: "bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.1)]",
+    badgeClassName: "bg-muted/5 text-muted border-0",
+    alertBg: "bg-destructive/5 border border-destructive/10",
     alertIcon: AlertCircle,
-    alertIconColor: "text-red-500",
+    alertIconColor: "text-warning",
     alertTitle: "Deposit Due",
-    alertTitleColor: "text-red-500",
-    buttonBg: "bg-red-500",
+    alertTitleColor: "text-warning",
+    buttonBg: "bg-warning",
     buttonText: "Pay Now",
-    progressColor: "bg-zinc-900",
+    progressColor: "bg-muted",
     potLabel: "Current Pot",
-    potColor: "text-zinc-900",
+    potColor: "text-muted",
   },
   active: {
     badge: "ACTIVE",
     badgeVariant: "default",
-    badgeClassName: "bg-[rgba(245,158,66,0.05)] text-[#f59e42] border-0",
+    badgeClassName: "bg-warning/5 text-warning border-0",
     alertBg: "bg-transparent",
     alertIcon: AlertCircle,
     alertIconColor: "text-primary",
@@ -73,25 +73,24 @@ const statusConfig: Record<
     alertTitleColor: "text-primary",
     buttonBg: "bg-primary",
     buttonText: "View Details",
-    progressColor: "bg-[#f59e42]",
+    progressColor: "bg-warning",
     potLabel: "Current Pot",
-    potColor: "text-[#f59e42]",
+    potColor: "text-warning",
   },
   completed: {
     badge: "COMPLETED",
     badgeVariant: "success",
-    badgeClassName: "bg-[rgba(123,143,245,0.05)] text-[#7b8ff5] border-0",
-    alertBg:
-      "bg-[rgba(123,143,245,0.05)] border border-[rgba(123,143,245,0.1)]",
+    badgeClassName: "bg-primary/5 text-primary border-0",
+    alertBg: "bg-primary/5 border border-primary/10",
     alertIcon: CheckCircle2,
-    alertIconColor: "text-[#7b8ff5]",
+    alertIconColor: "text-primary",
     alertTitle: "Circle Complete!",
-    alertTitleColor: "text-[#7b8ff5]",
-    buttonBg: "bg-[#7b8ff5]",
+    alertTitleColor: "text-primary",
+    buttonBg: "bg-primary",
     buttonText: "View Summary",
-    progressColor: "bg-[#7b8ff5]",
+    progressColor: "bg-primary",
     potLabel: "Final Pot",
-    potColor: "text-[#7b8ff5]",
+    potColor: "text-primary",
   },
 };
 
@@ -144,19 +143,19 @@ export function CircleCard({
       name={name}
       setIsDrawerOpen={setIsDrawerOpen}
     >
-      <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
+      <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
         {/* Header: Name and Status Badge */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
+            <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
               {name}
             </h2>
-            <div className="flex items-center gap-2 text-[#6f7780] text-[14px]">
+            <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Users className="size-4" strokeWidth={2} />
                 <span className="font-normal">{memberCount} members</span>
               </div>
-              <span className="text-[rgba(111,119,128,0.4)]">•</span>
+              <span className="text-muted-foreground/40">•</span>
               <span className="font-normal">{weeklyAmount}/week</span>
             </div>
           </div>
@@ -251,7 +250,7 @@ export function CircleCard({
                 </Avatar>
               ))}
               {memberCount > 4 && (
-                <div className="z-10 flex size-9 items-center justify-center rounded-full border-2 border-white bg-zinc-100 font-semibold text-[#6f7780] text-[12px]">
+                <div className="z-10 flex size-9 items-center justify-center rounded-full border-2 border-white bg-zinc-100 font-semibold text-[12px] text-muted-foreground">
                   +{memberCount - 4}
                 </div>
               )}
@@ -260,7 +259,7 @@ export function CircleCard({
 
           {/* Current/Final Pot */}
           <div className="flex flex-col items-end gap-1">
-            <span className="font-medium text-[#6f7780] text-[12px] tracking-[0.3px]">
+            <span className="font-medium text-[12px] text-muted-foreground tracking-[0.3px]">
               {config.potLabel}
             </span>
             <span
@@ -275,8 +274,8 @@ export function CircleCard({
         </div>
 
         {/* Next/Last Payout */}
-        <div className="flex items-center justify-between border-[rgba(232,235,237,0.5)] border-t pt-5">
-          <span className="font-medium text-[#6f7780] text-[14px]">
+        <div className="flex items-center justify-between border-border border-t pt-5">
+          <span className="font-medium text-[14px] text-muted-foreground">
             {status === "completed" ? "Last Payout" : "Next Payout"}
           </span>
           <span className="font-semibold text-[14px] text-zinc-950 tracking-[-0.35px]">

@@ -14,6 +14,7 @@ const createParticipantItemSchema = z.object({
 
 const batchCreateParticipantsSchema = z.object({
   participants: z.array(createParticipantItemSchema).min(1),
+  adminAddress: z.string().min(1),
 });
 
 export async function POST(
@@ -54,6 +55,7 @@ export async function POST(
 
     // Get all addresses from the request
     const addresses = parsed.data.participants.map((p) => p.userAddress);
+    const adminAddress = parsed.data.adminAddress;
 
     // Check for existing participants
     const existingParticipants = await db.query.participants.findMany({
@@ -89,6 +91,8 @@ export async function POST(
         newParticipants.map((p) => ({
           groupId,
           userAddress: p.userAddress,
+          accepted: adminAddress === p.userAddress,
+          acceptedAt: adminAddress === p.userAddress ? new Date() : null,
         }))
       )
       .returning();

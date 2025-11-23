@@ -64,7 +64,7 @@ export function InvitationCard({
   };
 
   return (
-    <Card className="flex w-full flex-col gap-4 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
+    <Card className="flex w-full flex-col gap-4 rounded-[24px] border border-border bg-white p-6 shadow-none">
       <Drawer onOpenChange={setIsDrawerOpen} open={isDrawerOpen}>
         <DrawerTrigger
           asChild
@@ -73,15 +73,15 @@ export function InvitationCard({
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between">
               <div className="flex flex-col gap-2">
-                <h2 className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
+                <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
                   {name}
                 </h2>
-                <div className="flex items-center gap-2 text-[#6f7780] text-[14px]">
+                <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Users className="size-4" strokeWidth={2} />
                     <span className="font-normal">{memberCount} members</span>
                   </div>
-                  <span className="text-[rgba(111,119,128,0.4)]">•</span>
+                  <span className="text-muted-foreground/40">•</span>
                   <span className="font-normal">{weeklyAmount}/week</span>
                 </div>
               </div>
@@ -106,14 +106,14 @@ export function InvitationCard({
             </div>
 
             {(totalWeeks || dueDate) && (
-              <div className="flex items-center gap-2 text-[#6f7780] text-[14px]">
+              <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
                 {totalWeeks && (
                   <>
                     <div className="flex items-center gap-2">
                       <Calendar className="size-4" strokeWidth={2} />
                       <span className="font-medium">{totalWeeks} weeks</span>
                     </div>
-                    <span className="text-[rgba(111,119,128,0.4)]">•</span>
+                    <span className="text-muted-foreground/40">•</span>
                   </>
                 )}
                 {dueDate && (
@@ -131,7 +131,7 @@ export function InvitationCard({
             <DrawerTitle />
             <DrawerDescription />
           </DrawerHeader>
-          <div className="flex h-[69px] w-full items-center justify-between border-[rgba(232,235,237,0.5)] border-b bg-white px-4">
+          <div className="flex h-[69px] w-full items-center justify-between border-border border-b bg-white px-4">
             <motion.button
               className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-[rgba(244,244,245,0.5)]"
               onClick={() => setIsDrawerOpen(false)}
@@ -141,10 +141,10 @@ export function InvitationCard({
               <ArrowLeft className="size-6 text-zinc-950" strokeWidth={2} />
             </motion.button>
             <div className="flex flex-col items-center justify-center">
-              <span className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
+              <span className="font-bold text-[18px] text-muted tracking-[-0.45px]">
                 {name}
               </span>
-              <span className="text-[#6f7780] text-[12px]">
+              <span className="text-[12px] text-muted-foreground">
                 {memberCount} members • {weeklyAmount}/week
               </span>
             </div>
@@ -156,14 +156,14 @@ export function InvitationCard({
             scrollBarClassName="opacity-0 w-0"
           >
             <div className="flex w-full flex-col gap-6 px-4 py-6">
-              <Card className="flex w-full flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
+              <Card className="flex w-full flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
                 <div className="flex items-start justify-between">
                   <div className="flex flex-col gap-2">
-                    <h2 className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
+                    <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
                       {name}
                     </h2>
                     {createdDate && (
-                      <div className="flex items-center gap-2 text-[#6f7780] text-[12px]">
+                      <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                         <Calendar className="size-3.5" strokeWidth={2} />
                         <span className="font-normal">
                           Created {createdDate}

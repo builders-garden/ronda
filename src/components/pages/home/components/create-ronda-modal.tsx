@@ -324,6 +324,7 @@ function CreateRondaModalContent({
                     batchCreateParticipants(
                       {
                         groupId,
+                        adminAddress: address || "",
                         participants: formData.participants.map(
                           (participant) => ({
                             userAddress: participant.address,
