@@ -1,9 +1,9 @@
-import { getCallsStatus, sendCalls } from "@wagmi/core";
+import { writeContract } from "@wagmi/core";
 import { AlertCircle, CheckCircle2, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { type Address, encodeFunctionData, erc20Abi } from "viem";
+import { type Address, erc20Abi } from "viem";
 import { RondaDrawer } from "@/components/shared/ronda-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -140,65 +140,28 @@ export function CircleCard({
 
   const handlePayNow = async () => {
     setIsDepositing(true);
-    console.log("TEST address", address);
     try {
-      // Encode approve function call
-      const approveData = encodeFunctionData({
+      // Approve the token
+      await writeContract(wagmiConfigMiniApp, {
         abi: erc20Abi,
+        address: CELO_USDC_ADDRESS,
         functionName: "approve",
         args: [address as Address, BigInt(Number(weeklyAmount) * 10 ** 6)],
       });
 
-      // Encode deposit function call
-      const depositData = encodeFunctionData({
+      // Deposit the token in the group
+      await writeContract(wagmiConfigMiniApp, {
         abi: RONDA_PROTOCOL_ABI,
+        address: address as Address,
         functionName: "deposit",
         args: [],
       });
 
-      // Send both calls together
-      const result = await sendCalls(wagmiConfigMiniApp, {
-        calls: [
-          {
-            to: CELO_USDC_ADDRESS,
-            data: approveData,
-          },
-          {
-            to: address as Address,
-            data: depositData,
-          },
-        ],
-      });
-
-      const id = typeof result === "string" ? result : result.id;
-
-      // Poll for calls status
-      const checkCallsStatus = async () => {
-        try {
-          const callsStatus = await getCallsStatus(wagmiConfigMiniApp, { id });
-
-          if (callsStatus.status === "success") {
-            toast.success("Deposit successful");
-            setIsDepositing(false);
-          } else if (callsStatus.status === "pending") {
-            setTimeout(checkCallsStatus, 2000);
-          } else if (callsStatus.status === "failure") {
-            console.log("TEST callsStatus failure", callsStatus);
-            toast.error("Failed to deposit");
-            setIsDepositing(false);
-          }
-        } catch (error) {
-          console.log("TEST callsStatus error", error);
-          toast.error("Failed to deposit");
-          setIsDepositing(false);
-        }
-      };
-
-      // Start checking status after a short delay
-      setTimeout(checkCallsStatus, 2000);
+      toast.success("Deposit successful");
     } catch (error) {
       console.log("TEST Error depositing:", error);
       toast.error("Failed to deposit");
+    } finally {
       setIsDepositing(false);
     }
   };
