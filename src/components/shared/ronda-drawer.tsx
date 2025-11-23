@@ -539,7 +539,9 @@ export const RondaDrawer = ({
 
     try {
       // Call the mock payout endpoint which will distribute funds on-chain
+      console.log("refetching mock payout");
       const result = await refetchMockPayout();
+      console.log("result", { result });
 
       // Handle error responses from the API
       if (result.data?.error) {
