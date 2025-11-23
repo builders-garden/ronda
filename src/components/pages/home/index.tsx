@@ -77,6 +77,7 @@ export default function HomePage() {
             </div>
             <div className="flex w-full flex-col items-center justify-start gap-4">
               <CircleCard
+                address="0x1"
                 avatars={["", "", "", ""]}
                 currentPot="$600"
                 currentWeek={8}
@@ -88,6 +89,7 @@ export default function HomePage() {
                 weeklyAmount="$50"
               />
               <CircleCard
+                address="0x3"
                 avatars={["", "", "", ""]}
                 currentPot="$800"
                 currentWeek={8}
@@ -99,6 +101,7 @@ export default function HomePage() {
                 weeklyAmount="$100"
               />
               <CircleCard
+                address="0x2"
                 avatars={["", "", "", ""]}
                 currentPot="$750"
                 currentWeek={6}

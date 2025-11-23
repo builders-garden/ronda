@@ -4,15 +4,21 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { InvitationCard } from "@/components/pages/home/components/invitation-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { CirclesPageContent } from "@/lib/enum";
 import { CircleCard } from "./components";
 
-export default function CirclesPage() {
+export default function CirclesPage({
+  initialPageContent,
+}: {
+  initialPageContent?: CirclesPageContent;
+}) {
   const [activeTab, setActiveTab] = useState("active");
 
   // Mock data - will be replaced with real data
   const activeCircles = [
     {
       id: 1,
+      address: "0x1",
       name: "Weekend Savers",
       memberCount: 12,
       weeklyAmount: "$50",
@@ -26,6 +32,7 @@ export default function CirclesPage() {
     {
       id: 3,
       name: "College Fund",
+      address: "0x2",
       memberCount: 10,
       weeklyAmount: "$75",
       currentWeek: 6,
@@ -40,6 +47,7 @@ export default function CirclesPage() {
   const completedCircles = [
     {
       id: 2,
+      address: "0x3",
       name: "Family Goals",
       memberCount: 8,
       weeklyAmount: "$100",
@@ -138,7 +146,11 @@ export default function CirclesPage() {
         <TabsContent className="mt-0 px-6 py-6" value="active">
           <div className="flex flex-col gap-4">
             {activeCircles.map((circle) => (
-              <CircleCard key={circle.id} {...circle} />
+              <CircleCard
+                key={circle.id}
+                {...circle}
+                initialContent={initialPageContent as CirclesPageContent}
+              />
             ))}
           </div>
         </TabsContent>
@@ -146,7 +158,11 @@ export default function CirclesPage() {
         <TabsContent className="mt-0 px-6 py-6" value="completed">
           <div className="flex flex-col gap-4">
             {completedCircles.map((circle) => (
-              <CircleCard key={circle.id} {...circle} />
+              <CircleCard
+                key={circle.id}
+                {...circle}
+                initialContent={initialPageContent as CirclesPageContent}
+              />
             ))}
           </div>
         </TabsContent>
