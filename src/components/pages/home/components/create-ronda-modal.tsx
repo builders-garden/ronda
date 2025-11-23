@@ -138,37 +138,36 @@ function CreateRondaModalContent({
         ofac?: boolean;
       } = {};
 
-      const verificationType = getVerificationType(formData);
+      // const verificationType = getVerificationType(formData);
 
-      // If verification type is not NONE, we need disclosures
-      if (verificationType !== 0) {
-        // Nationality is required if allowedNationalities is specified
-        if (
-          formData.nationalityVerification &&
-          formData.allowedNationalities &&
-          formData.allowedNationalities.length > 0
-        ) {
-          disclosures.nationality = true;
-        }
-
-        // Gender is required if gender verification is enabled and not ALL
-        if (
-          formData.genderVerification &&
-          formData.allowedGenders !== Genders.ALL
-        ) {
-          disclosures.gender = true;
-        }
-
-        // Date of birth is required if age verification is enabled
-        if (
-          formData.ageVerification &&
-          formData.minAge &&
-          formData.minAge.trim().length > 0
-        ) {
-          disclosures.date_of_birth = true;
-          disclosures.minimumAge = Number.parseInt(formData.minAge, 10);
-        }
+      // Nationality is required if allowedNationalities is specified
+      if (
+        formData.nationalityVerification &&
+        formData.allowedNationalities &&
+        formData.allowedNationalities.length > 0
+      ) {
+        disclosures.nationality = true;
       }
+
+      // Gender is required if gender verification is enabled and not ALL
+      if (
+        formData.genderVerification &&
+        formData.allowedGenders !== Genders.ALL
+      ) {
+        disclosures.gender = true;
+      }
+
+      // Date of birth is required if age verification is enabled
+      if (
+        formData.ageVerification &&
+        formData.minAge &&
+        formData.minAge.trim().length > 0
+      ) {
+        disclosures.date_of_birth = true;
+        disclosures.minimumAge = Number.parseInt(formData.minAge, 10);
+      }
+
+      disclosures.ofac = false;
 
       // Generate the scope seed (same as used in deployment)
       const scopeSeed = "ronda-test";
@@ -215,7 +214,7 @@ function CreateRondaModalContent({
         formData.minAge &&
         formData.minAge.trim().length > 0
           ? { olderThan: BigInt(Number.parseInt(formData.minAge, 10)) }
-          : undefined),
+          : { olderThan: BigInt(0) }),
         forbiddenCountries: [],
         ofacEnabled: false,
       };
@@ -246,7 +245,7 @@ function CreateRondaModalContent({
         ),
         operationCounter: BigInt(formData.numberOfCycles || 4),
         verificationType,
-        minAge: BigInt(formData.minAge || 18),
+        minAge: BigInt(Number.parseInt(formData.minAge || "18", 10)),
         allowedNationalities: formData.allowedNationalities || [],
         requiredGender:
           formData.allowedGenders === Genders.ALL
@@ -256,6 +255,7 @@ function CreateRondaModalContent({
           formData.participants.map((participant) => participant.address) || [],
       };
       console.log("TEST Deploying with parameters:", params);
+
       deploy(params);
     }
   };

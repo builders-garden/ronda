@@ -6,7 +6,7 @@ import { getUniversalLink } from "@selfxyz/core";
 import { SelfAppBuilder, SelfQRcodeWrapper } from "@selfxyz/qrcode";
 import { useSearchParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { decodeEventLog } from "viem";
 import { useAccount, useConnect } from "wagmi";
@@ -52,6 +52,7 @@ export default function TestPage() {
     useState<boolean>(false);
   const { connect } = useConnect();
   const searchParams = useSearchParams();
+  const hasOpenedDeeplink = useRef<boolean>(false);
 
   // Factory address from env
   const factoryAddress = env.NEXT_PUBLIC_RONDA_FACTORY_ADDRESS as Address;
@@ -270,7 +271,7 @@ export default function TestPage() {
   );
   const allowedNationalitiesStr = useMemo(
     () => deploymentParams.allowedNationalities?.join(",") || "",
-    [deploymentParams.allowedNationalities?.join]
+    [deploymentParams.allowedNationalities]
   );
   const requiredGenderStr = useMemo(
     () => deploymentParams.requiredGender || "",
@@ -288,7 +289,7 @@ export default function TestPage() {
   );
   const groupAllowedNationalitiesStr = useMemo(
     () => typedGroupInfo?.allowedNationalities?.join(",") || "",
-    [typedGroupInfo?.allowedNationalities?.join]
+    [typedGroupInfo?.allowedNationalities]
   );
   const groupRequiredGenderStr = useMemo(
     () => typedGroupInfo?.requiredGender || "",
@@ -305,6 +306,11 @@ export default function TestPage() {
       return;
     }
 
+    // Don't reinitialize if we're already verified (prevents loop)
+    if (verificationSuccess) {
+      return;
+    }
+
     try {
       // Map contract verification requirements to Self disclosures
       const disclosures: {
@@ -315,31 +321,29 @@ export default function TestPage() {
         ofac?: boolean;
       } = {};
 
-      // If verification type is not None (0), we need disclosures
+      // Priority 1: Use group info from contract if available
+      const hasGroupInfo = groupVerificationType !== undefined;
+
       if (
-        typedGroupInfo &&
+        hasGroupInfo &&
         (groupVerificationType === 1 || groupVerificationType === 2)
       ) {
-        // Nationality is required if allowedNationalities is specified
+        // Use group info from contract
         if (groupAllowedNationalitiesStr) {
           disclosures.nationality = true;
         }
-
-        // Gender is required if requiredGender is specified
         if (groupRequiredGenderStr) {
           disclosures.gender = true;
         }
-
-        // Date of birth is required if minAge is set
         if (groupMinAge !== "0") {
           disclosures.date_of_birth = true;
           disclosures.minimumAge = Number(groupMinAge);
         }
-
         // OFAC is always enabled for verification type 1 or 2
         disclosures.ofac = true;
-      } else if (deploymentParams.verificationConfig) {
-        // Use deployment params if group info not yet loaded
+      } else {
+        // Priority 2: Use deployment params (when group not yet created or verificationType is 0)
+        // Always set disclosures from deployment params as fallback
         if (verificationOlderThan !== "0") {
           disclosures.date_of_birth = true;
           disclosures.minimumAge = Number(verificationOlderThan);
@@ -355,6 +359,11 @@ export default function TestPage() {
         }
       }
 
+      console.log("Building Self App with disclosures:", disclosures);
+      console.log("Contract address:", effectiveContractAddress);
+      console.log("Scope:", scopeSeedStr);
+      console.log("User address:", address);
+
       const app = new SelfAppBuilder({
         appName: "Ronda Protocol",
         scope: scopeSeedStr,
@@ -368,12 +377,12 @@ export default function TestPage() {
         disclosures,
       }).build();
 
-      console.log("Self App:", app);
+      console.log("Self App created:", app);
       console.log("Self App Disclosures:", disclosures);
-      console.log("Self App Endpoint (Contract):", effectiveContractAddress);
 
       setSelfApp(app);
       const deeplink = getUniversalLink(app);
+      console.log("Deeplink generated:", deeplink);
       setSelfDeeplink(deeplink);
     } catch (error) {
       console.error("Error initializing Self App:", error);
@@ -390,8 +399,7 @@ export default function TestPage() {
     groupAllowedNationalitiesStr,
     groupRequiredGenderStr,
     groupMinAge,
-    deploymentParams.verificationConfig,
-    typedGroupInfo,
+    verificationSuccess,
   ]);
 
   const handleCreateGroup = () => {
@@ -435,7 +443,8 @@ export default function TestPage() {
   };
 
   const handleOpenSelf = async () => {
-    if (selfDeeplink) {
+    if (selfDeeplink && !verificationSuccess && !hasOpenedDeeplink.current) {
+      hasOpenedDeeplink.current = true;
       await sdk.actions.openUrl(selfDeeplink);
     }
   };
@@ -480,14 +489,15 @@ export default function TestPage() {
     }
   }, [deployReceipt]);
 
-  // Handle verified=true query parameter
+  // Handle verified=true query parameter (only once)
   useEffect(() => {
     const verified = searchParams.get("verified");
-    if (verified === "true") {
+    if (verified === "true" && !verificationSuccess) {
       setVerificationSuccess(true);
+      hasOpenedDeeplink.current = false; // Reset for potential re-verification
       console.log("Self verification successful!");
     }
-  }, [searchParams]);
+  }, [searchParams, verificationSuccess]);
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
@@ -540,10 +550,10 @@ export default function TestPage() {
             <div className="space-y-4 md:hidden">
               <Button
                 className="w-full"
-                disabled={!selfDeeplink}
+                disabled={!selfDeeplink || verificationSuccess}
                 onClick={handleOpenSelf}
               >
-                Open Self App
+                {verificationSuccess ? "Already Verified ✓" : "Open Self App"}
               </Button>
               {selfDeeplink && (
                 <div className="space-y-2">
@@ -611,14 +621,31 @@ export default function TestPage() {
                 </div>
               )}
             </div>
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
               <Button
                 className="w-full"
-                disabled={!(selfDeeplink && effectiveContractAddress)}
+                disabled={
+                  !(selfDeeplink && effectiveContractAddress) ||
+                  verificationSuccess
+                }
                 onClick={handleOpenSelf}
               >
-                Open Self App (Deep Link)
+                {verificationSuccess
+                  ? "Already Verified ✓"
+                  : "Open Self App (Deep Link)"}
               </Button>
+              {verificationSuccess && (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setVerificationSuccess(false);
+                    hasOpenedDeeplink.current = false;
+                  }}
+                  variant="outline"
+                >
+                  Reset Verification (for testing)
+                </Button>
+              )}
               {!effectiveContractAddress && (
                 <p className="mt-1 text-muted-foreground text-xs">
                   Deploy a contract first to set the endpoint

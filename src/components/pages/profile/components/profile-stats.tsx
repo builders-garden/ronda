@@ -120,7 +120,7 @@ export function ProfileStats() {
           if (_stats.isActive) {
             activeCircles += 1;
           }
-          totalPayouts += stats?.payoutsReceived;
+          totalPayouts += _stats?.payoutsReceived;
         }
       }
     }

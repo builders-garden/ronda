@@ -24,6 +24,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 import { countries, getCountryByCode, searchCountries } from "@/lib/countries";
 import { Genders } from "@/lib/enum";
 import type { NeynarUser } from "@/types/neynar.type";
+import { getVerificationType } from "@/utils";
 import { useCreateRonda } from "./create-ronda-context";
 
 export function Step3Participants() {
@@ -187,6 +188,8 @@ export function Step3Participants() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  console.log(getVerificationType(formData));
 
   return (
     <div className="flex flex-col gap-6">
@@ -353,6 +356,7 @@ export function Step3Participants() {
             </div>
             <Switch
               checked={formData.proofOfHuman}
+              disabled
               onCheckedChange={(checked: boolean) =>
                 updateFormData("proofOfHuman", checked)
               }

@@ -456,9 +456,7 @@ export const RondaDrawer = ({
             disclosures.date_of_birth = true;
             disclosures.minimumAge = Number(groupInfo.minAge);
           }
-
-          // OFAC is always enabled when verification is required
-          disclosures.ofac = true;
+          disclosures.ofac = false;
         }
       }
 
@@ -478,9 +476,21 @@ export const RondaDrawer = ({
         disclosures,
       }).build();
 
+      console.log("app", {
+        appName: "Ronda Protocol",
+        scope: scopeSeed,
+        userId: address,
+        userIdType: "hex",
+        endpoint: contractAddress.toLowerCase(),
+        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
+        endpointType: "celo",
+        userDefinedData: "Verify your identity to join the group",
+        disclosures,
+      });
+
       // Get the universal link
       const deeplink = getUniversalLink(app);
-
+      console.log("deeplink", deeplink);
       // Open the Self app
       await sdk.actions.openUrl(deeplink);
     } catch (error) {
@@ -780,44 +790,8 @@ export const RondaDrawer = ({
           </div>
         </ScrollArea>
 
-        {/* Deposit Button for Deposit Due State */}
-        {isDepositDue && (
-          <div className="flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
-            <Button
-              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
-              onClick={onDeposit}
-            >
-              <Wallet className="mr-2 size-5" strokeWidth={2} />
-              Deposit {depositAmount} Now
-            </Button>
-          </div>
-        )}
-
-        {/* Join Button - Show if verified and not a member */}
-        {shouldShowJoinButton && !isDepositDue && (
-          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
-            <Button
-              className="h-16 w-full cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
-              disabled={isJoining}
-              onClick={handleJoin}
-            >
-              {isJoining ? (
-                <>
-                  <Loader2 className="mr-2 size-5 animate-spin" />
-                  Joining...
-                </>
-              ) : (
-                <>
-                  <Users className="mr-2 size-5" strokeWidth={2} />
-                  Join Group
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-
         {/* Verification Required - Show if not verified */}
-        {shouldShowDisclaimer && !isDepositDue && (
+        {shouldShowDisclaimer && (
           <div className="sticky bottom-0 flex w-full flex-col gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
             {/* Why Verification Card */}
             <div className="w-full rounded-2xl border border-[rgba(123,143,245,0.3)] bg-linear-to-b bg-primary/10 from-[rgba(123,143,245,0.1)] to-[rgba(123,143,245,0.05)] p-4">
@@ -849,6 +823,42 @@ export const RondaDrawer = ({
                 <Check className="size-4 text-white" />
               </div>
               Verify Identity Now
+            </Button>
+          </div>
+        )}
+
+        {/* Join Button - Show if verified and not a member */}
+        {shouldShowJoinButton && (
+          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+            <Button
+              className="h-16 w-full cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              disabled={isJoining}
+              onClick={handleJoin}
+            >
+              {isJoining ? (
+                <>
+                  <Loader2 className="mr-2 size-5 animate-spin" />
+                  Joining...
+                </>
+              ) : (
+                <>
+                  <Users className="mr-2 size-5" strokeWidth={2} />
+                  Join Group
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* Deposit Button - Show if member and deposit is due */}
+        {isMember && isDepositDue && (
+          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+            <Button
+              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
+              onClick={onDeposit}
+            >
+              <Wallet className="mr-2 size-5" strokeWidth={2} />
+              Deposit {depositAmount} Now
             </Button>
           </div>
         )}
