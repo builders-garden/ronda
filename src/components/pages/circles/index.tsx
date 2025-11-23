@@ -157,7 +157,7 @@ export default function CirclesPage({
       invitedGroups.some(
         (group) =>
           group.groupAddress.toLowerCase() ===
-          initialPageContent.circleAddress.toLowerCase()
+          initialPageContent?.circleAddress?.toLowerCase()
       )
     ) {
       setActiveTab("invites");

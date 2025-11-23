@@ -1,4 +1,4 @@
-import { writeContract } from "@wagmi/core";
+import { waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { AlertCircle, CheckCircle2, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -118,6 +118,9 @@ export function CircleCard({
   const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
     usePageContent();
   const [isDepositing, setIsDepositing] = useState(false);
+  const [depositStatus, setDepositStatus] = useState<
+    "idle" | "approving" | "depositing"
+  >("idle");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const config = statusConfig[status];
   const progress = (currentWeek / totalWeeks) * 100;
@@ -142,19 +145,31 @@ export function CircleCard({
     setIsDepositing(true);
     try {
       // Approve the token
-      await writeContract(wagmiConfigMiniApp, {
+      setDepositStatus("approving");
+      const approveHash = await writeContract(wagmiConfigMiniApp, {
         abi: erc20Abi,
         address: CELO_USDC_ADDRESS,
         functionName: "approve",
         args: [address as Address, BigInt(Number(weeklyAmount) * 10 ** 6)],
       });
 
+      // Wait for approval transaction to be confirmed
+      await waitForTransactionReceipt(wagmiConfigMiniApp, {
+        hash: approveHash,
+      });
+
       // Deposit the token in the group
-      await writeContract(wagmiConfigMiniApp, {
+      setDepositStatus("depositing");
+      const depositHash = await writeContract(wagmiConfigMiniApp, {
         abi: RONDA_PROTOCOL_ABI,
         address: address as Address,
         functionName: "deposit",
         args: [],
+      });
+
+      // Wait for deposit transaction to be confirmed
+      await waitForTransactionReceipt(wagmiConfigMiniApp, {
+        hash: depositHash,
       });
 
       toast.success("Deposit successful");
@@ -163,6 +178,7 @@ export function CircleCard({
       toast.error("Failed to deposit");
     } finally {
       setIsDepositing(false);
+      setDepositStatus("idle");
     }
   };
 
@@ -171,6 +187,7 @@ export function CircleCard({
       asChild
       contractAddress={address as `0x${string}`}
       createdDate={createdDate}
+      depositStatus={depositStatus}
       groupId={groupId}
       isDepositing={isDepositing}
       isDrawerOpen={isDrawerOpen}

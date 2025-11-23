@@ -34,7 +34,6 @@ import { RondaStatus } from "@/lib/enum";
 import {
   useGetGroupInfoDetailed,
   useGetNextPayoutDeadline,
-  useGetPeriodDeposits,
   useHasUserDepositedCurrentPeriod,
   useIsMember,
   useIsUserVerified,
@@ -94,13 +93,14 @@ type RondaDrawerProps = {
     minutes: number;
   };
   isDepositing?: boolean;
+  depositStatus?: "idle" | "approving" | "depositing";
   // Members and activity
   members?: Member[];
   activities?: Activity[];
   // Backend group ID for fetching participants
   groupId?: string;
   // Actions
-  onDeposit?: () => void;
+  onDeposit?: () => void | Promise<void>;
   onViewAllMembers?: () => void;
 };
 
@@ -182,6 +182,7 @@ export const RondaDrawer = ({
   depositDeadline,
   timeRemaining: timeRemainingProp,
   isDepositing,
+  depositStatus = "idle",
   members,
   activities,
   groupId,
@@ -189,6 +190,9 @@ export const RondaDrawer = ({
   onViewAllMembers,
 }: RondaDrawerProps) => {
   const { address } = useAccount();
+  const [prevDepositStatus, setPrevDepositStatus] = useState<
+    "idle" | "approving" | "depositing"
+  >("idle");
 
   // Fetch participants with their status from backend and blockchain
   const {
@@ -204,33 +208,18 @@ export const RondaDrawer = ({
   const { mutate: updateParticipant } = useUpdateParticipant();
 
   // Fetch on-chain data
-  const { data: groupInfo } = useGetGroupInfoDetailed(
-    contractAddress,
-    !!contractAddress
-  );
-  const { data: hasDeposited } = useHasUserDepositedCurrentPeriod(
-    contractAddress,
-    address,
-    !!contractAddress && !!address
-  );
+  const { data: groupInfo, refetch: refetchGroupInfo } =
+    useGetGroupInfoDetailed(contractAddress, !!contractAddress);
+  const { data: hasDeposited, refetch: refetchHasDeposited } =
+    useHasUserDepositedCurrentPeriod(
+      contractAddress,
+      address,
+      !!contractAddress && !!address
+    );
 
   // Get next payout deadline from smart contract
-  const { data: nextPayoutDeadline } = useGetNextPayoutDeadline(
-    contractAddress,
-    !!contractAddress
-  );
-
-  // Get current period deposits for pot amount
-  const currentOperationIndex = useMemo(
-    () => groupInfo?.currentOperationIndex,
-    [groupInfo]
-  );
-
-  const { data: periodDeposits } = useGetPeriodDeposits(
-    contractAddress,
-    currentOperationIndex,
-    !!contractAddress && currentOperationIndex !== undefined
-  );
+  const { data: nextPayoutDeadline, refetch: refetchNextPayoutDeadline } =
+    useGetNextPayoutDeadline(contractAddress, !!contractAddress);
 
   // Compute values from on-chain data
   const recurringAmount = useMemo(() => {
@@ -254,16 +243,16 @@ export const RondaDrawer = ({
       ? Math.min(Number(groupInfo.currentOperationIndex) + 1, totalWeeks)
       : 3);
 
-  // Calculate pot amount from on-chain data
+  // Calculate pot amount from on-chain data using currentPeriodDeposits from groupInfo
   const potAmount = useMemo(() => {
     if (potAmountProp) {
       console.log("Pot amount prop", potAmountProp);
       return potAmountProp;
     }
 
-    if (periodDeposits) {
+    if (groupInfo?.currentPeriodDeposits !== undefined) {
       const deposits = Number(
-        formatUnits(periodDeposits as bigint, USDC_DECIMALS)
+        formatUnits(groupInfo.currentPeriodDeposits, USDC_DECIMALS)
       );
       return `$${deposits.toFixed(2)}`;
     }
@@ -271,7 +260,12 @@ export const RondaDrawer = ({
     // Fallback: estimate based on recurring amount and current week
     const estimatedPot = recurringAmount * currentWeek;
     return `$${estimatedPot.toFixed(2)}`;
-  }, [potAmountProp, periodDeposits, recurringAmount, currentWeek]);
+  }, [
+    potAmountProp,
+    groupInfo?.currentPeriodDeposits,
+    recurringAmount,
+    currentWeek,
+  ]);
 
   // Calculate next payout date based on smart contract deadline
   const nextPayout = useMemo(() => {
@@ -431,6 +425,46 @@ export const RondaDrawer = ({
     }
   }, [joinError]);
 
+  // Handle deposit success - refetch all data when deposit completes
+  useEffect(() => {
+    const handleDepositComplete = async () => {
+      // Check if we just completed a deposit (transitioned from depositing to idle)
+      if (
+        prevDepositStatus === "depositing" &&
+        depositStatus === "idle" &&
+        !isDepositing
+      ) {
+        console.log("Deposit completed, refetching data...");
+
+        // Small delay to ensure blockchain state is updated
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        // Refetch all deposit-related data
+        await Promise.all([
+          refetchHasDeposited(),
+          refetchGroupInfo(),
+          refetchNextPayoutDeadline(),
+          refetchParticipants(),
+        ]);
+
+        console.log("Data refetched successfully");
+      }
+
+      // Update previous status
+      setPrevDepositStatus(depositStatus);
+    };
+
+    handleDepositComplete();
+  }, [
+    depositStatus,
+    isDepositing,
+    prevDepositStatus,
+    refetchHasDeposited,
+    refetchGroupInfo,
+    refetchNextPayoutDeadline,
+    refetchParticipants,
+  ]);
+
   const handleJoin = () => {
     if (!(contractAddress && address)) {
       toast.error("Please connect your wallet");
@@ -541,18 +575,6 @@ export const RondaDrawer = ({
         disclosures,
       }).build();
 
-      console.log("app", {
-        appName: "Ronda Protocol",
-        scope: scopeSeed,
-        userId: address,
-        userIdType: "hex",
-        endpoint: contractAddress.toLowerCase(),
-        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
-        endpointType: "celo",
-        userDefinedData: "Verify your identity to join the group",
-        disclosures,
-      });
-
       // Get the universal link
       const deeplink = getUniversalLink(app);
       console.log("deeplink", deeplink);
@@ -638,7 +660,7 @@ export const RondaDrawer = ({
               {name}
             </span>
             <span className="text-[#6f7780] text-[12px]">
-              {memberCount} members • {weeklyAmount}
+              {memberCount} members • {weeklyAmount}/week
             </span>
           </div>
           <div className="size-11 shrink-0 rounded-full bg-transparent" />
@@ -705,6 +727,31 @@ export const RondaDrawer = ({
                   value={progress}
                 />
               </div>
+
+              {/* Deposit Success Banner - Show when user has deposited this period */}
+              {hasDeposited && address && (
+                <div className="flex items-center justify-between rounded-2xl border border-[rgba(107,155,122,0.6)] bg-emerald-500/80 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-5 items-center justify-center rounded-full bg-[#6b9b7a]">
+                      <Check className="size-3.5 text-white" strokeWidth={3} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-[13px] text-zinc-950 tracking-[-0.35px]">
+                        {depositAmount} Deposited
+                      </span>
+                      <span className="font-normal text-[#6f7780] text-[11px]">
+                        Next deposit due {nextPayout}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    className="rounded-full border-none bg-[rgba(107,155,122,0.2)] px-2 py-1 font-bold text-[#6b9b7a] text-[10px] uppercase tracking-[0.25px]"
+                    variant="outline"
+                  >
+                    Paid
+                  </Badge>
+                </div>
+              )}
 
               {/* Deposit Deadline Card */}
               {isDepositDue && (
@@ -857,7 +904,7 @@ export const RondaDrawer = ({
         </ScrollArea>
 
         {/* Join Button - Show if not a member */}
-        {shouldShowJoinButton && (
+        {shouldShowDepositButton && (
           <div
             className="flex w-full shrink-0 gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4"
             onPointerDown={(e) => e.stopPropagation()}
@@ -981,14 +1028,49 @@ export const RondaDrawer = ({
             onPointerDown={(e) => e.stopPropagation()}
           >
             <Button
-              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
+              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90 disabled:opacity-70"
+              disabled={isDepositing}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeposit?.();
               }}
             >
-              <Wallet className="mr-2 size-5" strokeWidth={2} />
-              Deposit {depositAmount} Now
+              <AnimatePresence mode="wait">
+                {depositStatus === "approving" ? (
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center"
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    key="approving"
+                  >
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                    Approving...
+                  </motion.div>
+                ) : depositStatus === "depositing" ? (
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center"
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    key="depositing"
+                  >
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                    Depositing...
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center"
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    key="deposit-now"
+                  >
+                    <Wallet className="mr-2 size-5" strokeWidth={2} />
+                    Deposit {depositAmount} Now
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Button>
           </div>
         )}

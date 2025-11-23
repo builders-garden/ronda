@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, CircleDollarSign, CircleUser, Star } from "lucide-react";
+import { Banknote, CircleDollarSign, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
@@ -149,14 +149,7 @@ export function ProfileStats() {
 
   if (isLoading || !address) {
     return (
-      <div className="grid w-full grid-cols-2 gap-4">
-        <StatCard
-          bgColor="bg-muted/5"
-          icon={CircleUser}
-          iconColor="text-muted"
-          label="Circles Joined"
-          value="..."
-        />
+      <div className="grid w-full grid-cols-3 gap-4">
         <StatCard
           bgColor="bg-success/10"
           icon={CircleDollarSign}
@@ -165,17 +158,17 @@ export function ProfileStats() {
           value="..."
         />
         <StatCard
-          bgColor="bg-primary/10"
-          icon={Banknote}
-          iconColor="text-primary"
-          label="Payouts Received"
-          value="..."
-        />
-        <StatCard
           bgColor="bg-warning/10"
           icon={Star}
           iconColor="text-warning"
           label="Active Circles"
+          value="..."
+        />
+        <StatCard
+          bgColor="bg-primary/10"
+          icon={Banknote}
+          iconColor="text-primary"
+          label="Payouts Received"
           value="..."
         />
       </div>
@@ -202,16 +195,7 @@ export function ProfileStats() {
         );
       })}
 
-      <div className="grid w-full grid-cols-2 gap-4">
-        {/* Circles Joined */}
-        <StatCard
-          bgColor="bg-muted/5"
-          icon={CircleUser}
-          iconColor="text-muted"
-          label="Circles Joined"
-          value={stats.circlesJoined.toString()}
-        />
-
+      <div className="grid w-full grid-cols-3 gap-4">
         {/* Total Saved */}
         <StatCard
           bgColor="bg-success/10"
@@ -221,15 +205,6 @@ export function ProfileStats() {
           value={formatCurrency(stats.totalSaved)}
         />
 
-        {/* Payouts Received */}
-        <StatCard
-          bgColor="bg-primary/10"
-          icon={Banknote}
-          iconColor="text-primary"
-          label="Payouts Received"
-          value={stats?.payoutsReceived.toString()}
-        />
-
         {/* Active Circles */}
         <StatCard
           bgColor="bg-warning/10"
@@ -237,6 +212,15 @@ export function ProfileStats() {
           iconColor="text-warning"
           label="Active Circles"
           value={stats.activeCircles.toString()}
+        />
+
+        {/* Payouts Received */}
+        <StatCard
+          bgColor="bg-primary/10"
+          icon={Banknote}
+          iconColor="text-primary"
+          label="Payouts Received"
+          value={stats?.payoutsReceived.toString()}
         />
       </div>
     </>
