@@ -7,24 +7,27 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { Address } from "viem";
+import { Frequency, Genders } from "@/lib/enum";
 
 export type Participant = {
   id: string;
   name: string;
   username: string;
+  address: Address;
   avatar?: string;
   isHost?: boolean;
   fid?: number;
 };
 
-type CreateRondaFormData = {
+export type CreateRondaFormData = {
   // Step 1: Basic Details
   roscaName: string;
   description: string;
 
   // Step 2: Contribution Setup
   contributionAmount: string;
-  frequency: string;
+  frequency: Frequency;
   numberOfCycles: string;
 
   // Step 3: Participants
@@ -36,7 +39,7 @@ type CreateRondaFormData = {
   ageVerification: boolean;
   minAge: string;
   genderVerification: boolean;
-  allowedGenders: string;
+  allowedGenders: Genders;
   nationalityVerification: boolean;
   allowedNationalities: string[]; // Country codes
 };
@@ -56,7 +59,7 @@ const initialFormData: CreateRondaFormData = {
   roscaName: "",
   description: "",
   contributionAmount: "",
-  frequency: "weekly",
+  frequency: Frequency.WEEKLY,
   numberOfCycles: "",
   participants: [],
   searchQuery: "",
@@ -64,9 +67,9 @@ const initialFormData: CreateRondaFormData = {
   ageVerification: true,
   minAge: "18",
   genderVerification: true,
-  allowedGenders: "all",
+  allowedGenders: Genders.ALL,
   nationalityVerification: true,
-  allowedNationalities: ["US"],
+  allowedNationalities: ["USA"],
 };
 
 const CreateRondaContext = createContext<CreateRondaContextType | undefined>(

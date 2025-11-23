@@ -6,7 +6,7 @@ import { useReadContract } from "wagmi";
 import { RONDA_PROTOCOL_ABI } from "../config";
 
 // Types based on the contract ABI
-export type VerificationType = 0 | 1 | 2; // enum VerificationType
+export type VerificationType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8; // enum VerificationType
 
 export type GroupInfo = {
   creator: Address;

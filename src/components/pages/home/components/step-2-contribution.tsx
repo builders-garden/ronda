@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Frequency } from "@/lib/enum";
 import { useCreateRonda } from "./create-ronda-context";
 
 export function Step2Contribution() {
@@ -81,7 +82,9 @@ export function Step2Contribution() {
           Frequency <span className="text-destructive">*</span>
         </Label>
         <Select
-          onValueChange={(value: string) => updateFormData("frequency", value)}
+          onValueChange={(value: Frequency) =>
+            updateFormData("frequency", value)
+          }
           value={formData.frequency}
         >
           <SelectTrigger
@@ -91,10 +94,10 @@ export function Step2Contribution() {
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="biweekly">Bi-weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="quarterly">Quarterly</SelectItem>
+            <SelectItem value={Frequency.WEEKLY}>Weekly</SelectItem>
+            <SelectItem value={Frequency.BIWEEKLY}>Bi-weekly</SelectItem>
+            <SelectItem value={Frequency.MONTHLY}>Monthly</SelectItem>
+            <SelectItem value={Frequency.QUARTERLY}>Quarterly</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
 import { WhatIsRoscaModal } from "@/components/shared/what-is-rosca-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +23,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/utils";
+import { Frequency, Genders } from "@/lib/enum";
+import { env } from "@/lib/env";
+import {
+  type DeployRondaProtocolParams,
+  useDeployRondaProtocol,
+  type VerificationConfig,
+} from "@/lib/smart-contracts/use-deploy-ronda-protocol";
+import { cn, frequencyToSeconds, getVerificationType } from "@/utils";
 import { CreateRondaProvider, useCreateRonda } from "./create-ronda-context";
 import { Step1BasicInfo } from "./step-1-basic-info";
 import { Step2Contribution } from "./step-2-contribution";
@@ -49,6 +58,7 @@ function CreateRondaModalContent({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { address } = useAccount();
   const { formData, resetFormData, canProceedFromStep } = useCreateRonda();
   const [currentStep, setCurrentStep] = useState(1);
   const [showWhatIsRosca, setShowWhatIsRosca] = useState(false);
@@ -56,34 +66,95 @@ function CreateRondaModalContent({
   const stepConfig = STEP_CONFIG[currentStep as keyof typeof STEP_CONFIG];
   const progress = stepConfig?.percent || 0;
 
+  // Group deployment hook
+  const {
+    deploy,
+    hash: _deployHash,
+    receipt: _deployReceipt,
+    isPending: _isDeploying,
+    isConfirmed: _isDeployConfirmed,
+    error: _deployError,
+  } = useDeployRondaProtocol();
+
+  // Next step handler
   const handleNext = () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
   };
 
+  // Back step handler
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
+  // Close modal handler
   const handleClose = () => {
     onOpenChange(false);
     setCurrentStep(1);
     resetFormData();
   };
 
+  // The function to create the ROSCA group
   const handleCreateRosca = () => {
-    // TODO: Implement actual creation logic - API call here
-    console.log("Creating ROSCA with:", formData);
-    // Call your API endpoint here with formData
-    // Example:
-    // await fetch('/api/rondas', {
-    //   method: 'POST',
-    //   body: JSON.stringify(formData),
-    // });
-    handleClose();
+    // Check if we are in step 4, the last one
+    if (currentStep === 4) {
+      // Call the smart contract function to create the group
+      if (!address) {
+        return;
+      }
+
+      // Generate the verification config based on the form data
+      const verificationConfig: VerificationConfig = {
+        ...(formData.ageVerification &&
+        formData.minAge &&
+        formData.minAge.trim().length > 0
+          ? { olderThan: BigInt(Number.parseInt(formData.minAge, 10)) }
+          : undefined),
+        forbiddenCountries: [],
+        ofacEnabled: false,
+      };
+
+      // Generate the scope seed based on the form data
+      const scopeSeed = "ronda-test";
+
+      // Get the verification type based on the form data
+      const verificationType = getVerificationType(formData);
+
+      // Get the seconds based on the frequency
+      const depositFrequency = frequencyToSeconds(
+        formData.frequency || Frequency.WEEKLY
+      );
+      const borrowFrequency = frequencyToSeconds(
+        formData.frequency || Frequency.WEEKLY
+      );
+
+      const params: DeployRondaProtocolParams = {
+        factoryAddress: env.NEXT_PUBLIC_RONDA_FACTORY_ADDRESS as Address,
+        scopeSeed,
+        verificationConfig,
+        creator: address,
+        depositFrequency: BigInt(depositFrequency),
+        borrowFrequency: BigInt(borrowFrequency),
+        recurringAmount: BigInt(
+          Number.parseFloat(formData.contributionAmount) * 10 ** 6
+        ),
+        operationCounter: BigInt(formData.numberOfCycles || 4),
+        verificationType,
+        minAge: BigInt(formData.minAge || 18),
+        allowedNationalities: formData.allowedNationalities || [],
+        requiredGender:
+          formData.allowedGenders === Genders.ALL
+            ? ""
+            : formData.allowedGenders,
+        usersToInvite:
+          formData.participants.map((participant) => participant.address) || [],
+      };
+      console.log("TEST Deploying with parameters:", params);
+      deploy(params);
+    }
   };
 
   const handleEditStep = (step: number) => {
@@ -216,7 +287,7 @@ function CreateRondaModalContent({
               </Button>
               {currentStep === TOTAL_STEPS ? (
                 <Button
-                  className="h-[52px] flex-1 rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90"
+                  className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
                   onClick={handleCreateRosca}
                 >
                   Create ROSCA
@@ -224,7 +295,7 @@ function CreateRondaModalContent({
                 </Button>
               ) : (
                 <Button
-                  className="h-[52px] flex-1 rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+                  className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
                   disabled={!canProceedFromStep(currentStep)}
                   onClick={handleNext}
                 >

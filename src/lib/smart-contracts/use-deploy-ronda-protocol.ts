@@ -4,7 +4,7 @@ import RondaProtocolFactoryAbi from "./abis/RondaProtocolFactory.json";
 import type { VerificationType } from "./hooks/use-ronda-read";
 
 export type VerificationConfig = {
-  olderThan: bigint;
+  olderThan?: bigint;
   forbiddenCountries: string[];
   ofacEnabled: boolean;
 };

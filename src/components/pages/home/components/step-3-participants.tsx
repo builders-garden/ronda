@@ -3,6 +3,9 @@
 import { Loader2, Search, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,11 +22,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { useFarcaster } from "@/contexts/farcaster-context";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { countries, getCountryByCode, searchCountries } from "@/lib/countries";
+import { Genders } from "@/lib/enum";
 import type { NeynarUser } from "@/types/neynar.type";
 import { useCreateRonda } from "./create-ronda-context";
 
 export function Step3Participants() {
   const { user: currentUser } = useAuth();
+  const { address: walletAddress } = useAccount();
   const { context: miniAppContext } = useFarcaster();
   const { formData, updateFormData } = useCreateRonda();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -38,6 +43,7 @@ export function Step3Participants() {
   useEffect(() => {
     if (
       currentUser &&
+      walletAddress &&
       miniAppContext?.user?.fid &&
       !formData.participants.some((p) => p.fid === miniAppContext?.user?.fid)
     ) {
@@ -50,6 +56,7 @@ export function Step3Participants() {
           avatar: currentUser.image ?? undefined,
           isHost: true,
           fid: miniAppContext?.user?.fid,
+          address: walletAddress,
         },
       ]);
     }
@@ -104,11 +111,16 @@ export function Step3Participants() {
     );
 
     if (!isAlreadyAdded) {
+      if (!user.verified_addresses.primary.eth_address) {
+        toast.error("User does not have a verified Ethereum address");
+        return;
+      }
       const newParticipant = {
         id: user.fid.toString(),
         name: user.display_name || user.username,
         username: `@${user.username}`,
         avatar: user.pfp_url,
+        address: user.verified_addresses.primary.eth_address as Address,
         fid: user.fid,
       };
 
@@ -402,7 +414,7 @@ export function Step3Participants() {
                 Allowed Gender(s)
               </Label>
               <Select
-                onValueChange={(value: string) =>
+                onValueChange={(value: Genders) =>
                   updateFormData("allowedGenders", value)
                 }
                 value={formData.allowedGenders}
@@ -411,9 +423,9 @@ export function Step3Participants() {
                   <SelectValue placeholder="All Genders" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Genders</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value={Genders.ALL}>All Genders</SelectItem>
+                  <SelectItem value={Genders.MALE}>Male</SelectItem>
+                  <SelectItem value={Genders.FEMALE}>Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -492,21 +504,6 @@ export function Step3Participants() {
                                   {country.region}
                                 </p>
                                 <span className="text-[#6f7780]">•</span>
-                                <Badge
-                                  className={`h-4 rounded px-1.5 font-semibold text-[10px] ${
-                                    country.support === "full"
-                                      ? "bg-green-100 text-green-700"
-                                      : country.support === "csca"
-                                        ? "bg-blue-100 text-blue-700"
-                                        : "bg-gray-100 text-gray-700"
-                                  }`}
-                                >
-                                  {country.support === "full"
-                                    ? "DSC + CSCA"
-                                    : country.support === "csca"
-                                      ? "CSCA"
-                                      : "Special"}
-                                </Badge>
                               </div>
                             </div>
                           </button>

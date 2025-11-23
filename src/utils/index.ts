@@ -190,3 +190,105 @@ export function getInitials(name: string): string {
     .map((v) => v?.[0]?.toUpperCase())
     .join("");
 }
+
+import type { CreateRondaFormData } from "@/components/pages/home/components/create-ronda-context";
+import { Frequency, VerificationType } from "@/lib/enum";
+
+/**
+ * Converts a frequency enum value to seconds
+ * @param frequency - The frequency enum value
+ * @returns The number of seconds for the given frequency
+ */
+export function frequencyToSeconds(frequency: Frequency): number {
+  const secondsPerDay = 24 * 60 * 60;
+
+  switch (frequency) {
+    case Frequency.WEEKLY:
+      return 7 * secondsPerDay; // 7 days
+    case Frequency.BIWEEKLY:
+      return 14 * secondsPerDay; // 14 days
+    case Frequency.MONTHLY:
+      return 30 * secondsPerDay; // 30 days (approximate month)
+    case Frequency.QUARTERLY:
+      return 90 * secondsPerDay; // 90 days (3 months)
+    default:
+      throw new Error(`Unknown frequency: ${frequency}`);
+  }
+}
+
+/**
+ * Determines the verification type based on form data flags
+ * @param formData - The form data containing verification flags
+ * @returns The corresponding VerificationType enum value
+ */
+export function getVerificationType(
+  formData: Pick<
+    CreateRondaFormData,
+    | "proofOfHuman"
+    | "ageVerification"
+    | "genderVerification"
+    | "nationalityVerification"
+    | "allowedNationalities"
+  >
+): VerificationType {
+  const {
+    proofOfHuman,
+    ageVerification,
+    genderVerification,
+    nationalityVerification,
+    allowedNationalities,
+  } = formData;
+
+  // If no verifications are enabled, return NONE
+  if (!proofOfHuman) {
+    return VerificationType.NONE;
+  }
+
+  // Count enabled verifications
+  const hasAge = ageVerification;
+  const hasNationality =
+    nationalityVerification && allowedNationalities.length > 0;
+  const hasGender = genderVerification;
+
+  const verificationCount =
+    (hasAge ? 1 : 0) + (hasNationality ? 1 : 0) + (hasGender ? 1 : 0);
+
+  // Only proof of personhood
+  if (verificationCount === 0) {
+    return VerificationType.SELF_BASE;
+  }
+
+  // Single verification
+  if (verificationCount === 1) {
+    if (hasAge) {
+      return VerificationType.SELF_AGE;
+    }
+    if (hasNationality) {
+      return VerificationType.SELF_NATIONALITY;
+    }
+    if (hasGender) {
+      return VerificationType.SELF_GENDER;
+    }
+  }
+
+  // Two verifications
+  if (verificationCount === 2) {
+    if (hasAge && hasNationality) {
+      return VerificationType.SELF_AGE_NATIONALITY;
+    }
+    if (hasAge && hasGender) {
+      return VerificationType.SELF_AGE_GENDER;
+    }
+    if (hasNationality && hasGender) {
+      return VerificationType.SELF_NATIONALITY_GENDER;
+    }
+  }
+
+  // All three verifications
+  if (verificationCount === 3) {
+    return VerificationType.SELF_ALL;
+  }
+
+  // Fallback (should not happen)
+  return VerificationType.SELF_BASE;
+}
