@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       .insert(groups)
       .values({
         name: parsed.data.name,
-        description: parsed.data.description,
+        description: parsed.data.description ?? "",
         groupAddress: parsed.data.groupAddress,
         creatorId: session.user.id,
       })
