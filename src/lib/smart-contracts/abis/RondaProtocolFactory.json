@@ -26,6 +26,11 @@
         "name": "_feeRecipient",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_operator",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -89,6 +94,11 @@
         "type": "tuple",
         "internalType": "struct RondaProtocolFactory.DeploymentParams",
         "components": [
+          {
+            "name": "name",
+            "type": "string",
+            "internalType": "string"
+          },
           {
             "name": "scopeSeed",
             "type": "string",
@@ -326,6 +336,19 @@
   },
   {
     "type": "function",
+    "name": "operator",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "usdcAddress",
     "inputs": [],
     "outputs": [
@@ -405,6 +428,11 @@
   {
     "type": "error",
     "name": "InvalidIdentityVerificationHubAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOperatorAddress",
     "inputs": []
   },
   {

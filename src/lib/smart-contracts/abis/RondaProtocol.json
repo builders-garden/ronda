@@ -412,6 +412,19 @@
   },
   {
     "type": "function",
+    "name": "groupEnsName",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "groupId",
     "inputs": [],
     "outputs": [
@@ -524,6 +537,11 @@
         "internalType": "uint256"
       },
       {
+        "name": "_ensSubdomain",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
         "name": "_usdcAddress",
         "type": "address",
         "internalType": "address"
@@ -545,6 +563,11 @@
       },
       {
         "name": "_feeRecipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_operator",
         "type": "address",
         "internalType": "address"
       },
@@ -747,6 +770,19 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "operator",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -1261,6 +1297,11 @@
   },
   {
     "type": "error",
+    "name": "InvalidOperatorAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidUSDCAddress",
     "inputs": []
   },
@@ -1306,6 +1347,11 @@
   },
   {
     "type": "error",
+    "name": "OnlyOperator",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "OperationCounterMustBeGreaterThanZero",
     "inputs": []
   },
@@ -1333,6 +1379,27 @@
     "type": "error",
     "name": "UserNotInvited",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "VerificationFailedError",
+    "inputs": [
+      {
+        "name": "groupId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "addressAttempted",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "internalType": "string"
+      }
+    ]
   },
   {
     "type": "error",

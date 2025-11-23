@@ -10,6 +10,7 @@ export type VerificationConfig = {
 };
 
 export type DeployRondaProtocolParams = {
+  name: string;
   factoryAddress: Address;
   scopeSeed: string;
   verificationConfig: VerificationConfig;
@@ -68,6 +69,7 @@ export const useDeployRondaProtocol = () => {
       functionName: "deployRondaProtocol",
       args: [
         {
+          name,
           scopeSeed,
           verificationConfig,
           creator,
