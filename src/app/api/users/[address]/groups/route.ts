@@ -39,7 +39,9 @@ export async function GET(
 
     try {
       const session = await getServerSession();
-      const viewerFid = session?.user?.farcasterFid;
+      const viewerFid = session?.user?.email?.split("@")[0]
+        ? Number.parseInt(session?.user?.email?.split("@")[0], 10)
+        : undefined;
 
       const neynarUser = await fetchUserByAddress(address, viewerFid);
       if (neynarUser?.fid) {

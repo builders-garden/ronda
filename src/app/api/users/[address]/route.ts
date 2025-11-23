@@ -20,7 +20,9 @@ export async function GET(
 
     // Get the current session to use as viewerFid if available
     const session = await getServerSession();
-    const viewerFid = session?.user?.farcasterFid;
+    const viewerFid = session?.user?.email?.split("@")[0]
+      ? Number.parseInt(session?.user?.email?.split("@")[0], 10)
+      : undefined;
 
     // Fetch user from Neynar by address
     const neynarUser = await fetchUserByAddress(address, viewerFid);
