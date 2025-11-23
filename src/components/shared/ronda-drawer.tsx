@@ -377,11 +377,14 @@ export const RondaDrawer = ({
   } = useJoinGroup(contractAddress);
 
   // Mock payout query - only enabled manually when needed
-  const { refetch: refetchMockPayout, isFetching: isFetchingMockPayout } =
-    useMockPayout({
-      address: contractAddress || "",
-      enabled: false, // Don't auto-fetch, only on manual trigger
-    });
+  const {
+    refetch: refetchMockPayout,
+    isFetching: isFetchingMockPayout,
+    error: mockPayoutError,
+  } = useMockPayout({
+    address: contractAddress || "",
+    enabled: false, // Don't auto-fetch, only on manual trigger
+  });
 
   // Handle join success
   useEffect(() => {
@@ -511,6 +514,15 @@ export const RondaDrawer = ({
     toast.info("You declined the invitation");
     setIsDrawerOpen(false);
   };
+
+  useEffect(() => {
+    if (mockPayoutError) {
+      toast.error("Error in processing payout", {
+        duration: 5000,
+      });
+      setIsProcessingPayout(false);
+    }
+  }, [mockPayoutError]);
 
   // Handle mock payout
   const handleMockPayout = async () => {
