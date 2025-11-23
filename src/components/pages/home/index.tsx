@@ -2,12 +2,16 @@
 
 import { Plus, Star, UsersRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
-import { CircleCard } from "@/components/pages/circles/components/circle-card";
+import { useEffect, useMemo, useState } from "react";
+import type { Address } from "viem";
+import { useAccount } from "wagmi";
+import { InvitationCardWithData } from "@/components/pages/circles/components/invitation-card-with-data";
+import { useUserGroups } from "@/hooks/use-user-groups";
 import { useUserStats } from "@/hooks/use-user-stats";
+import { useIsInvited, useIsMember } from "@/lib/smart-contracts/hooks";
 import { CreateRondaModal } from "./components/create-ronda-modal";
+import { GroupCardWithData } from "./components/group-card-with-data";
 import { HomeHeader } from "./components/home-header";
-import { InvitationCard } from "./components/invitation-card";
 import { SummaryCard } from "./components/summary-card";
 
 // Format currency value
@@ -25,15 +29,109 @@ function formatCurrency(value: number): string {
   return `$${(value / 1_000_000).toFixed(2)}M`;
 }
 
+// Component to check membership/invitation status for a group
+function GroupStatusChecker({
+  group,
+  userAddress,
+  onStatusReady,
+}: {
+  group: { id: string; groupAddress: string | null };
+  userAddress: Address | undefined;
+  onStatusReady: (
+    groupId: string,
+    isMember: boolean,
+    isInvited: boolean
+  ) => void;
+}) {
+  const groupAddress = group.groupAddress as Address | undefined;
+  const { data: isMember } = useIsMember(
+    groupAddress,
+    userAddress,
+    !!groupAddress && !!userAddress
+  );
+  const { data: isInvited } = useIsInvited(
+    groupAddress,
+    userAddress,
+    !!groupAddress && !!userAddress
+  );
+
+  useEffect(() => {
+    if (isMember !== undefined || isInvited !== undefined) {
+      onStatusReady(group.id, Boolean(isMember), Boolean(isInvited));
+    }
+  }, [group.id, isMember, isInvited, onStatusReady]);
+
+  return null;
+}
+
 export default function HomePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { address } = useAccount();
   const { totalSaved, activeCircles, reliability, isLoading, readers } =
     useUserStats();
+  const { data: userGroupsData, isLoading: isLoadingGroups } = useUserGroups({
+    address: address || "",
+    enabled: !!address,
+  });
+
+  // Track group statuses (member/invited)
+  const [groupStatuses, setGroupStatuses] = useState<
+    Map<string, { isMember: boolean; isInvited: boolean }>
+  >(new Map());
+
+  const handleStatusReady = (
+    groupId: string,
+    isMember: boolean,
+    isInvited: boolean
+  ) => {
+    setGroupStatuses((prev) => {
+      const next = new Map(prev);
+      next.set(groupId, { isMember, isInvited });
+      return next;
+    });
+  };
+
+  // Filter groups - separate active circles and invitations
+  const { activeCirclesList, invitedGroups } = useMemo(() => {
+    if (!userGroupsData?.groups) {
+      return { activeCirclesList: [], invitedGroups: [] };
+    }
+
+    const active: typeof userGroupsData.groups = [];
+    const invited: typeof userGroupsData.groups = [];
+
+    for (const group of userGroupsData.groups) {
+      const status = groupStatuses.get(group.id);
+
+      // If user is invited but not a member, it's an invitation
+      if (status?.isInvited && !status?.isMember) {
+        invited.push(group);
+        continue;
+      }
+
+      // If user is a member, add to active circles
+      if (status?.isMember) {
+        active.push(group);
+      }
+    }
+
+    return { activeCirclesList: active, invitedGroups: invited };
+  }, [userGroupsData?.groups, groupStatuses]);
 
   return (
     <>
       {/* Render group stats readers */}
       {readers}
+
+      {/* Check group statuses (member/invited) */}
+      {userGroupsData?.groups.map((group) => (
+        <GroupStatusChecker
+          group={group}
+          key={group.id}
+          onStatusReady={handleStatusReady}
+          userAddress={address}
+        />
+      ))}
 
       <motion.div
         animate={{ opacity: 1 }}
@@ -97,42 +195,19 @@ export default function HomePage() {
               </motion.button>
             </div>
             <div className="flex w-full flex-col items-center justify-start gap-4">
-              <CircleCard
-                address="0x1"
-                avatars={["", "", "", ""]}
-                currentPot="$600"
-                currentWeek={8}
-                memberCount={12}
-                name="Weekend Savers"
-                nextPayout="Dec 28"
-                status="deposit_due"
-                totalWeeks={12}
-                weeklyAmount="$50"
-              />
-              <CircleCard
-                address="0x3"
-                avatars={["", "", "", ""]}
-                currentPot="$800"
-                currentWeek={8}
-                lastPayout="Dec 20"
-                memberCount={8}
-                name="Family Goals"
-                status="completed"
-                totalWeeks={8}
-                weeklyAmount="$100"
-              />
-              <CircleCard
-                address="0x2"
-                avatars={["", "", "", ""]}
-                currentPot="$750"
-                currentWeek={6}
-                memberCount={10}
-                name="College Fund"
-                nextPayout="Jan 8"
-                status="active"
-                totalWeeks={10}
-                weeklyAmount="$75"
-              />
+              {isLoadingGroups ? (
+                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
+                  Loading circles...
+                </div>
+              ) : activeCirclesList.length > 0 ? (
+                activeCirclesList.map((group) => (
+                  <GroupCardWithData group={group} key={group.id} />
+                ))
+              ) : (
+                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
+                  No circles yet. Create your first circle!
+                </div>
+              )}
             </div>
           </div>
 
@@ -142,29 +217,30 @@ export default function HomePage() {
               <h2 className="font-bold text-[20px] text-zinc-950 tracking-[-0.5px]">
                 Invitations
               </h2>
-              <div className="flex items-center gap-2">
-                <div className="flex size-6 items-center justify-center rounded-full bg-red-500">
-                  <span className="font-bold text-[12px] text-white">2</span>
+              {invitedGroups.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex size-6 items-center justify-center rounded-full bg-red-500">
+                    <span className="font-bold text-[12px] text-white">
+                      {invitedGroups.length}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="flex w-full flex-col items-center justify-start gap-4">
-              <InvitationCard
-                avatars={["", "", ""]}
-                dueDate="Jan 15"
-                memberCount={15}
-                name="Friends Holiday Fund"
-                totalWeeks={12}
-                weeklyAmount="$80"
-              />
-              <InvitationCard
-                avatars={["", "", ""]}
-                dueDate="Jan 22"
-                memberCount={6}
-                name="Fitness Challenge Pool"
-                totalWeeks={8}
-                weeklyAmount="$30"
-              />
+              {isLoadingGroups ? (
+                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
+                  Loading invitations...
+                </div>
+              ) : invitedGroups.length > 0 ? (
+                invitedGroups.map((group) => (
+                  <InvitationCardWithData group={group} key={group.id} />
+                ))
+              ) : (
+                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
+                  No pending invitations
+                </div>
+              )}
             </div>
           </div>
         </div>

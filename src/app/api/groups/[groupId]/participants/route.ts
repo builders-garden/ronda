@@ -5,6 +5,40 @@ import { db } from "@/lib/database";
 import { groups, participants } from "@/lib/database/db.schema";
 import { getServerSession } from "@/utils/better-auth";
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ groupId: string }> }
+) {
+  try {
+    const { groupId } = await params;
+
+    if (!groupId) {
+      return NextResponse.json(
+        { error: "Group ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Get all participants for this group
+    const participantRecords = await db.query.participants.findMany({
+      where: eq(participants.groupId, groupId),
+    });
+
+    return NextResponse.json(
+      { participants: participantRecords },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 const createParticipantSchema = z.object({
   userAddress: z.string().min(1),
   accepted: z.boolean().optional(),
