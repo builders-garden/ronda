@@ -26,6 +26,7 @@ type CircleCardProps = {
   avatars: string[];
   initialContent?: CirclesPageContent;
   createdDate?: string;
+  groupId?: string; // Backend group ID for fetching participants
 };
 
 const statusConfig: Record<
@@ -108,6 +109,7 @@ export function CircleCard({
   avatars,
   initialContent,
   createdDate,
+  groupId,
 }: CircleCardProps) {
   const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
     usePageContent();
@@ -136,6 +138,7 @@ export function CircleCard({
       asChild
       contractAddress={address as `0x${string}`}
       createdDate={createdDate}
+      groupId={groupId}
       isDrawerOpen={isDrawerOpen}
       memberCount={memberCount}
       name={name}

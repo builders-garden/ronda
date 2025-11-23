@@ -7,6 +7,7 @@ export {
   useGetGroupId,
   useGetGroupInfo,
   useGetGroupInfoDetailed,
+  useGetNextPayoutDeadline,
   useGetPeriodDeposits,
   useGetUserDepositStatusForAllPeriods,
   useHasUserDeposited,
