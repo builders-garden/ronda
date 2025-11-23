@@ -109,7 +109,7 @@ export function useUserStats(): UserStats & { readers: ReactElement } {
   const handleStatsReady = (groupId: string, _stats: GroupStats) => {
     setGroupStatsMap((prev) => {
       const next = new Map(prev);
-      next.set(groupId, stats);
+      next.set(groupId, _stats);
       return next;
     });
   };
