@@ -5,12 +5,14 @@ import {
   useMemo,
   useState,
 } from "react";
-import { PageContent } from "@/lib/enum";
+import { MainPageContent } from "@/lib/enum";
 
 const PageContentContext = createContext<
   | {
-      pageContent: PageContent;
-      setPageContent: (content: PageContent) => void;
+      content: MainPageContent;
+      setContent: (content: MainPageContent) => void;
+      hasOpenedInitialDrawer: boolean;
+      setHasOpenedInitialDrawer: (hasOpened: boolean) => void;
     }
   | undefined
 >(undefined);
@@ -24,14 +26,17 @@ export const usePageContent = () => {
 };
 
 export const PageContentProvider = ({ children }: { children: ReactNode }) => {
-  const [pageContent, setPageContent] = useState<PageContent>(PageContent.HOME);
+  const [content, setContent] = useState<MainPageContent>(MainPageContent.HOME);
+  const [hasOpenedInitialDrawer, setHasOpenedInitialDrawer] = useState(false);
 
   const value = useMemo(
     () => ({
-      pageContent,
-      setPageContent,
+      content,
+      setContent,
+      hasOpenedInitialDrawer,
+      setHasOpenedInitialDrawer,
     }),
-    [pageContent]
+    [content, hasOpenedInitialDrawer]
   );
 
   return (

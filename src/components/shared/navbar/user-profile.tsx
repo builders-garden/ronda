@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useFarcaster } from "@/contexts/farcaster-context";
-import { PageContent } from "@/lib/enum";
+import { MainPageContent } from "@/lib/enum";
 import { cn, formatAvatarSrc, getInitials } from "@/utils";
 
 type UserProfileProps = {
   onClick: () => void;
-  pageContent: PageContent;
+  pageContent: MainPageContent;
 };
 
 export const UserProfile = ({ onClick, pageContent }: UserProfileProps) => {
@@ -36,7 +36,7 @@ export const UserProfile = ({ onClick, pageContent }: UserProfileProps) => {
       <Button
         className={cn(
           "size-[26px] cursor-pointer rounded-xl bg-transparent p-0 transition-all hover:bg-transparent",
-          pageContent === PageContent.PROFILE &&
+          pageContent === MainPageContent.PROFILE &&
             "rounded-full ring-2 ring-primary"
         )}
         disabled={isDisabled}
