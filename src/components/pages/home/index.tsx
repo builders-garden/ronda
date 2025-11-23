@@ -2,7 +2,7 @@
 
 import { Plus, Star, UsersRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import { InvitationCardWithData } from "@/components/pages/circles/components/invitation-card-with-data";
@@ -55,11 +55,37 @@ function GroupStatusChecker({
     !!groupAddress && !!userAddress
   );
 
+  const lastStatusRef = useRef<string>("");
+  const isEnabled = !!groupAddress && !!userAddress;
+
   useEffect(() => {
-    if (isMember !== undefined || isInvited !== undefined) {
-      onStatusReady(group.id, Boolean(isMember), Boolean(isInvited));
+    // If the query is not enabled (no groupAddress or userAddress), report default status
+    if (!isEnabled) {
+      const status = { isMember: false, isInvited: false };
+      const statusKey = JSON.stringify(status);
+      if (lastStatusRef.current !== statusKey) {
+        lastStatusRef.current = statusKey;
+        onStatusReady(group.id, false, false);
+      }
+      return;
     }
-  }, [group.id, isMember, isInvited, onStatusReady]);
+
+    // If enabled, wait for both queries to complete
+    if (isMember === undefined || isInvited === undefined) {
+      return;
+    }
+
+    const status = {
+      isMember: Boolean(isMember),
+      isInvited: Boolean(isInvited),
+    };
+    const statusKey = JSON.stringify(status);
+
+    if (lastStatusRef.current !== statusKey) {
+      lastStatusRef.current = statusKey;
+      onStatusReady(group.id, status.isMember, status.isInvited);
+    }
+  }, [group.id, isEnabled, isMember, isInvited, onStatusReady]);
 
   return null;
 }
@@ -74,22 +100,35 @@ export default function HomePage() {
     enabled: !!address,
   });
 
+  console.log("USER GROUPS DATA", { userGroupsData });
+
   // Track group statuses (member/invited)
   const [groupStatuses, setGroupStatuses] = useState<
     Map<string, { isMember: boolean; isInvited: boolean }>
   >(new Map());
 
-  const handleStatusReady = (
-    groupId: string,
-    isMember: boolean,
-    isInvited: boolean
-  ) => {
-    setGroupStatuses((prev) => {
-      const next = new Map(prev);
-      next.set(groupId, { isMember, isInvited });
-      return next;
-    });
-  };
+  const handleStatusReady = useCallback(
+    (groupId: string, isMember: boolean, isInvited: boolean) => {
+      setGroupStatuses((prev) => {
+        const existingStatus = prev.get(groupId);
+        const newStatus = { isMember, isInvited };
+
+        // Only update if the status has actually changed
+        if (
+          existingStatus &&
+          existingStatus.isMember === newStatus.isMember &&
+          existingStatus.isInvited === newStatus.isInvited
+        ) {
+          return prev;
+        }
+
+        const next = new Map(prev);
+        next.set(groupId, newStatus);
+        return next;
+      });
+    },
+    []
+  );
 
   // Filter groups - separate active circles and invitations
   const { activeCirclesList, invitedGroups } = useMemo(() => {
@@ -103,14 +142,26 @@ export default function HomePage() {
     for (const group of userGroupsData.groups) {
       const status = groupStatuses.get(group.id);
 
+      console.log("GROUP NAME", {
+        groupName: group.name,
+        status,
+      });
+
+      // If we don't have status yet, default to showing as active member
+      // This prevents the UI from being empty while statuses load
+      if (!status) {
+        active.push(group);
+        continue;
+      }
+
       // If user is invited but not a member, it's an invitation
-      if (status?.isInvited && !status?.isMember) {
+      if (status.isInvited && !status.isMember) {
         invited.push(group);
         continue;
       }
 
       // If user is a member, add to active circles
-      if (status?.isMember) {
+      if (status.isMember) {
         active.push(group);
       }
     }

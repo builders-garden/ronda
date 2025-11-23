@@ -5,7 +5,6 @@ import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import type { groups } from "@/lib/database/db.schema";
 import {
-  type GroupInfoDetailed,
   useGetGroupInfoDetailed,
   useHasUserDepositedCurrentPeriod,
 } from "@/lib/smart-contracts/hooks";
@@ -41,15 +40,14 @@ export function GroupStatusReader({
       return;
     }
 
-    const info = groupInfo as unknown as GroupInfoDetailed;
-    if (!info.exists) {
+    if (!groupInfo.exists) {
       return;
     }
 
     // Calculate total weeks and current week
-    const totalWeeks = Number(info.operationCounter) || 1;
+    const totalWeeks = Number(groupInfo.operationCounter) || 1;
     const currentWeek = Math.min(
-      Number(info.currentOperationIndex) + 1,
+      Number(groupInfo.currentOperationIndex) + 1,
       totalWeeks
     );
 

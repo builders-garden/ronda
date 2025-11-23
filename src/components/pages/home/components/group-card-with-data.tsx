@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -9,7 +9,6 @@ import { useGroupParticipants } from "@/hooks/use-group-participants";
 import type { groups } from "@/lib/database/db.schema";
 import type { CirclesPageContent } from "@/lib/enum";
 import {
-  type GroupInfoDetailed,
   useGetGroupInfoDetailed,
   useGetPeriodDeposits,
   useHasUserDepositedCurrentPeriod,
@@ -20,7 +19,7 @@ const USDC_DECIMALS = 6;
 
 type Group = typeof groups.$inferSelect;
 
-type GroupCardData = {
+export type GroupCardData = {
   address: string;
   name: string;
   memberCount: number;
@@ -32,6 +31,7 @@ type GroupCardData = {
   lastPayout?: string;
   status: "active" | "deposit_due" | "completed";
   avatars: string[];
+  createdDate?: string;
 };
 
 export function GroupCardWithData({
@@ -62,13 +62,10 @@ export function GroupCardWithData({
   );
 
   // Get current period deposits for current pot
-  const currentOperationIndex = useMemo(() => {
-    if (!groupInfo) {
-      return;
-    }
-    const info = groupInfo as unknown as GroupInfoDetailed;
-    return info.currentOperationIndex;
-  }, [groupInfo]);
+  const currentOperationIndex = useMemo(
+    () => groupInfo?.currentOperationIndex,
+    [groupInfo]
+  );
 
   const { data: periodDeposits } = useGetPeriodDeposits(
     groupAddress,
@@ -76,30 +73,34 @@ export function GroupCardWithData({
     !!groupAddress && currentOperationIndex !== undefined
   );
 
-  const [cardData, setCardData] = useState<GroupCardData | null>(null);
-
-  useEffect(() => {
-    if (!(groupInfo && groupAddress)) {
-      return;
+  // Memoize computed values to prevent unnecessary re-renders
+  const cardData = useMemo(() => {
+    // Wait for groupInfo to be loaded (undefined means still loading)
+    if (!groupAddress || groupInfo === undefined) {
+      return null;
     }
 
-    const info = groupInfo as unknown as GroupInfoDetailed;
-    if (!info.exists) {
-      return;
+    // If groupInfo is null or false, the group doesn't exist on-chain
+    if (!groupInfo) {
+      return null;
+    }
+
+    if (!groupInfo.exists) {
+      return null;
     }
 
     // Calculate weekly amount
     const recurringAmount = Number(
-      formatUnits(info.recurringAmount, USDC_DECIMALS)
+      formatUnits(groupInfo.recurringAmount ?? BigInt(0), USDC_DECIMALS)
     );
     const weeklyAmount = `$${recurringAmount.toFixed(0)}`;
 
     // Calculate total weeks and current week
     // operationCounter represents the total number of operations (periods)
     // currentOperationIndex is 0-based, so current week is index + 1
-    const totalWeeks = Number(info.operationCounter) || 1;
+    const totalWeeks = Number(groupInfo.operationCounter) || 1;
     const currentWeek = Math.min(
-      Number(info.currentOperationIndex) + 1,
+      Number(groupInfo.currentOperationIndex) + 1,
       totalWeeks
     );
 
@@ -127,7 +128,8 @@ export function GroupCardWithData({
 
     // Calculate next payout date based on deposit frequency
     // depositFrequency is in seconds, convert to days
-    const depositFrequencyDays = Number(info.depositFrequency) / (24 * 60 * 60);
+    const depositFrequencyDays =
+      Number(groupInfo.depositFrequency) / (24 * 60 * 60);
     const nextPayoutDate = new Date();
     nextPayoutDate.setDate(
       nextPayoutDate.getDate() + Math.ceil(depositFrequencyDays)
@@ -153,7 +155,16 @@ export function GroupCardWithData({
     // To get avatars, we'd need to fetch user data for each participant
     const avatars: string[] = [];
 
-    setCardData({
+    // Format created date from group
+    const createdDate = group.createdAt
+      ? new Date(group.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : undefined;
+
+    return {
       address: groupAddress,
       name: group.name,
       memberCount,
@@ -165,11 +176,13 @@ export function GroupCardWithData({
       lastPayout: status === "completed" ? lastPayout : undefined,
       status,
       avatars,
-    });
+      createdDate,
+    };
   }, [
     groupInfo,
     groupAddress,
     group.name,
+    group.createdAt,
     periodDeposits,
     hasDeposited,
     userAddress,
@@ -184,6 +197,7 @@ export function GroupCardWithData({
     <CircleCard
       address={cardData.address}
       avatars={cardData.avatars}
+      createdDate={cardData.createdDate}
       currentPot={cardData.currentPot}
       currentWeek={cardData.currentWeek}
       initialContent={initialPageContent}

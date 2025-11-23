@@ -7,8 +7,6 @@ import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useUserGroups } from "@/hooks/use-user-groups";
 import {
-  type GroupInfoDetailed,
-  type UserDepositStatus,
   useGetGroupInfoDetailed,
   useGetUserDepositStatusForAllPeriods,
   useIsMember,
@@ -53,20 +51,17 @@ function GroupStatsReader({
       return;
     }
 
-    // Type assertion - wagmi returns tuple data that needs to be cast
-    const info = groupInfo as unknown as GroupInfoDetailed;
     const recurringAmount = Number(
-      formatUnits(info.recurringAmount, USDC_DECIMALS)
+      formatUnits(groupInfo.recurringAmount ?? 0, USDC_DECIMALS)
     );
 
-    const status = depositStatus as unknown as UserDepositStatus | undefined;
-    const depositedPeriods = status
-      ? status.depositedPeriods.filter(Boolean).length
+    const depositedPeriods = depositStatus
+      ? (depositStatus.depositedPeriods?.filter(Boolean).length ?? 0)
       : 0;
     const totalDeposits = recurringAmount * depositedPeriods;
 
     // A group is considered active if it exists and the user is a member
-    const isActive = info.exists && Boolean(isMember);
+    const isActive = groupInfo.exists && Boolean(isMember);
 
     // Calculate payouts received - this would need contract data to determine
     // For now, we'll use a placeholder that can be enhanced later

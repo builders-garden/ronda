@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
 import { InvitationCard } from "@/components/pages/home/components/invitation-card";
 import { useGroupParticipants } from "@/hooks/use-group-participants";
 import type { groups } from "@/lib/database/db.schema";
 import {
-  type GroupInfoDetailed,
   useGetGroupInfoDetailed,
   useGetPeriodDeposits,
 } from "@/lib/smart-contracts/hooks";
@@ -17,7 +16,7 @@ const USDC_DECIMALS = 6;
 
 type Group = typeof groups.$inferSelect;
 
-type InvitationCardData = {
+export type InvitationCardData = {
   name: string;
   memberCount: number;
   weeklyAmount: string;
@@ -46,13 +45,10 @@ export function InvitationCardWithData({ group }: { group: Group }) {
   );
 
   // Get current period deposits for pot amount
-  const currentOperationIndex = useMemo(() => {
-    if (!groupInfo) {
-      return;
-    }
-    const info = groupInfo as unknown as GroupInfoDetailed;
-    return info.currentOperationIndex;
-  }, [groupInfo]);
+  const currentOperationIndex = useMemo(
+    () => groupInfo?.currentOperationIndex,
+    [groupInfo]
+  );
 
   const { data: periodDeposits } = useGetPeriodDeposits(
     groupAddress,
@@ -60,28 +56,26 @@ export function InvitationCardWithData({ group }: { group: Group }) {
     !!groupAddress && currentOperationIndex !== undefined
   );
 
-  const [cardData, setCardData] = useState<InvitationCardData | null>(null);
-
-  useEffect(() => {
+  // Memoize computed values to prevent unnecessary re-renders
+  const cardData = useMemo(() => {
     if (!(groupInfo && groupAddress)) {
-      return;
+      return null;
     }
 
-    const info = groupInfo as unknown as GroupInfoDetailed;
-    if (!info.exists) {
-      return;
+    if (!groupInfo.exists) {
+      return null;
     }
 
     // Calculate weekly amount
     const recurringAmount = Number(
-      formatUnits(info.recurringAmount, USDC_DECIMALS)
+      formatUnits(groupInfo.recurringAmount ?? BigInt(0), USDC_DECIMALS)
     );
     const weeklyAmount = `$${recurringAmount.toFixed(0)}`;
 
     // Calculate total weeks and current week
-    const totalWeeks = Number(info.operationCounter) || 1;
+    const totalWeeks = Number(groupInfo.operationCounter) || 1;
     const currentWeek = Math.min(
-      Number(info.currentOperationIndex) + 1,
+      Number(groupInfo.currentOperationIndex) + 1,
       totalWeeks
     );
 
@@ -98,7 +92,8 @@ export function InvitationCardWithData({ group }: { group: Group }) {
     }
 
     // Calculate next payout date based on deposit frequency
-    const depositFrequencyDays = Number(info.depositFrequency) / (24 * 60 * 60);
+    const depositFrequencyDays =
+      Number(groupInfo.depositFrequency) / (24 * 60 * 60);
     const nextPayoutDate = new Date();
     nextPayoutDate.setDate(
       nextPayoutDate.getDate() + Math.ceil(depositFrequencyDays)
@@ -125,7 +120,7 @@ export function InvitationCardWithData({ group }: { group: Group }) {
     // For avatars, we'll use empty array for now
     const avatars: string[] = [];
 
-    setCardData({
+    return {
       name: group.name,
       memberCount,
       weeklyAmount,
@@ -136,7 +131,7 @@ export function InvitationCardWithData({ group }: { group: Group }) {
       nextPayout,
       currentWeek,
       createdDate,
-    });
+    };
   }, [
     groupInfo,
     groupAddress,

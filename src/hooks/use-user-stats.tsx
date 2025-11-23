@@ -1,14 +1,12 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useUserGroups } from "@/hooks/use-user-groups";
 import {
-  type GroupInfoDetailed,
-  type UserDepositStatus,
   useGetGroupInfoDetailed,
   useGetUserDepositStatusForAllPeriods,
   useIsMember,
@@ -44,45 +42,67 @@ export function GroupStatsReader({
   );
   const { data: isMember } = useIsMember(groupAddress, userAddress, true);
 
+  // Track the last stats to avoid duplicate calls
+  const lastStatsRef = useRef<string>("");
+
   useEffect(() => {
-    if (!(groupInfo && isMember)) {
-      onStatsReady(groupId, {
+    // Wait for all data to be available before processing
+    if (
+      groupInfo === undefined ||
+      depositStatus === undefined ||
+      isMember === undefined
+    ) {
+      return;
+    }
+
+    if (!isMember) {
+      const stats = {
         totalDeposits: 0,
         isActive: false,
         payoutsReceived: 0,
         totalPeriods: 0,
         depositedPeriods: 0,
-      });
+      };
+      const statsKey = JSON.stringify(stats);
+
+      if (lastStatsRef.current !== statsKey) {
+        lastStatsRef.current = statsKey;
+        onStatsReady(groupId, stats);
+      }
       return;
     }
 
-    // Type assertion - wagmi returns tuple data that needs to be cast
-    const info = groupInfo as unknown as GroupInfoDetailed;
     const recurringAmount = Number(
-      formatUnits(info.recurringAmount, USDC_DECIMALS)
+      formatUnits(groupInfo.recurringAmount ?? 0, USDC_DECIMALS)
     );
 
-    const status = depositStatus as unknown as UserDepositStatus | undefined;
-    const totalPeriods = status ? Number(status.totalPeriods) : 0;
-    const depositedPeriods = status
-      ? status.depositedPeriods.filter(Boolean).length
+    const totalPeriods = depositStatus ? Number(depositStatus.totalPeriods) : 0;
+    const depositedPeriods = depositStatus
+      ? (depositStatus.depositedPeriods?.filter(Boolean).length ?? 0)
       : 0;
     const totalDeposits = recurringAmount * depositedPeriods;
 
     // A group is considered active if it exists and the user is a member
-    const isActive = info.exists && Boolean(isMember);
+    const isActive = groupInfo.exists && Boolean(isMember);
 
     // Calculate payouts received - this would need contract data to determine
     // For now, we'll use a placeholder that can be enhanced later
     const payoutsReceived = 0;
 
-    onStatsReady(groupId, {
+    const stats = {
       totalDeposits,
       isActive,
       payoutsReceived,
       totalPeriods,
       depositedPeriods,
-    });
+    };
+
+    // Only call onStatsReady if the stats have actually changed
+    const statsKey = JSON.stringify(stats);
+    if (lastStatsRef.current !== statsKey) {
+      lastStatsRef.current = statsKey;
+      onStatsReady(groupId, stats);
+    }
   }, [groupId, groupInfo, depositStatus, isMember, onStatsReady]);
 
   return null;
@@ -106,13 +126,26 @@ export function useUserStats(): UserStats & { readers: ReactElement } {
     new Map()
   );
 
-  const handleStatsReady = (groupId: string, _stats: GroupStats) => {
-    setGroupStatsMap((prev) => {
-      const next = new Map(prev);
-      next.set(groupId, _stats);
-      return next;
-    });
-  };
+  // Memoize the callback to prevent unnecessary re-renders of child components
+  const handleStatsReady = useCallback(
+    (groupId: string, _stats: GroupStats) => {
+      setGroupStatsMap((prev) => {
+        // Only update if the stats have actually changed
+        const existingStats = prev.get(groupId);
+        if (
+          existingStats &&
+          JSON.stringify(existingStats) === JSON.stringify(_stats)
+        ) {
+          return prev;
+        }
+
+        const next = new Map(prev);
+        next.set(groupId, _stats);
+        return next;
+      });
+    },
+    []
+  );
 
   const stats = useMemo(() => {
     if (!(userGroupsData?.groups && address) || isLoading) {
