@@ -7,12 +7,14 @@ import {
   Coins,
   FileText,
   Info,
+  Loader2,
   Plus,
   Users,
 } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
-import type { Address } from "viem";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { type Address, decodeEventLog } from "viem";
 import { useAccount } from "wagmi";
 import { WhatIsRoscaModal } from "@/components/shared/what-is-rosca-modal";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/auth-context";
+import { useBatchCreateParticipants } from "@/hooks/use-batch-create-participants";
+import { useCreateGroup } from "@/hooks/use-create-group";
 import { Frequency, Genders } from "@/lib/enum";
 import { env } from "@/lib/env";
+import RondaProtocolFactoryAbi from "@/lib/smart-contracts/abis/RondaProtocolFactory.json";
 import {
   type DeployRondaProtocolParams,
   useDeployRondaProtocol,
@@ -58,10 +64,12 @@ function CreateRondaModalContent({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { user } = useAuth();
   const { address } = useAccount();
   const { formData, resetFormData, canProceedFromStep } = useCreateRonda();
   const [currentStep, setCurrentStep] = useState(1);
   const [showWhatIsRosca, setShowWhatIsRosca] = useState(false);
+  const [isCreatingRoscaGroup, setIsCreatingRoscaGroup] = useState(false);
 
   const stepConfig = STEP_CONFIG[currentStep as keyof typeof STEP_CONFIG];
   const progress = stepConfig?.percent || 0;
@@ -70,11 +78,17 @@ function CreateRondaModalContent({
   const {
     deploy,
     hash: _deployHash,
-    receipt: _deployReceipt,
+    receipt: deployReceipt,
     isPending: _isDeploying,
     isConfirmed: _isDeployConfirmed,
-    error: _deployError,
+    error: deployError,
   } = useDeployRondaProtocol();
+
+  // Group record creation hook
+  const { mutate: createGroup } = useCreateGroup();
+
+  // Batch participant creation hook
+  const { mutate: batchCreateParticipants } = useBatchCreateParticipants();
 
   // Next step handler
   const handleNext = () => {
@@ -105,6 +119,9 @@ function CreateRondaModalContent({
       if (!address) {
         return;
       }
+
+      // Set the creating ROSCA group state to true
+      setIsCreatingRoscaGroup(true);
 
       // Generate the verification config based on the form data
       const verificationConfig: VerificationConfig = {
@@ -175,6 +192,97 @@ function CreateRondaModalContent({
         return null;
     }
   };
+
+  // Extract contract address from deployment receipt (decoded transaction hash)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <>
+  useEffect(() => {
+    if (deployReceipt?.logs) {
+      try {
+        // Decode the RondaProtocolDeployed event from the logs
+        for (const log of deployReceipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: RondaProtocolFactoryAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+
+            if (decoded.eventName === "RondaProtocolDeployed" && decoded.args) {
+              const args = decoded.args as unknown as {
+                groupId: bigint;
+                rondaProtocol: Address;
+                deployer: Address;
+                salt: `0x${string}`;
+              };
+              const deployedAddress = args.rondaProtocol;
+              console.log(
+                "Deployed contract address from decoded transaction:",
+                deployedAddress
+              );
+              createGroup(
+                {
+                  name: formData.roscaName,
+                  description: formData.description,
+                  creatorId: user?.id || "",
+                  groupAddress: deployedAddress,
+                },
+                {
+                  onSuccess: (response) => {
+                    const groupId = response.group.id;
+
+                    // Create all participants in batch
+                    batchCreateParticipants(
+                      {
+                        groupId,
+                        participants: formData.participants.map(
+                          (participant) => ({
+                            userAddress: participant.address,
+                          })
+                        ),
+                      },
+                      {
+                        onSuccess: (result) => {
+                          if (result.skipped > 0) {
+                            toast.success(
+                              `ROSCA group created! ${result.created} participants added, ${result.skipped} already existed.`
+                            );
+                          } else {
+                            toast.success("ROSCA group created successfully");
+                          }
+                          handleClose();
+                        },
+                        onError: (error) => {
+                          console.error("Error creating participants:", error);
+                          toast.error("Failed to create participants");
+                          handleClose();
+                        },
+                      }
+                    );
+                  },
+                  onError: () => {
+                    toast.error("Failed to create ROSCA group");
+                    setIsCreatingRoscaGroup(false);
+                  },
+                }
+              );
+            }
+          } catch (_error) {
+            // Ignore errors for events that don't match
+          }
+        }
+      } catch (error) {
+        console.error("Error decoding deployment event:", error);
+      }
+    }
+  }, [deployReceipt]);
+
+  // In case of deployment error, show the error message
+  useEffect(() => {
+    if (deployError) {
+      toast.error("Failed to create ROSCA group");
+      setIsCreatingRoscaGroup(false);
+    }
+  }, [deployError]);
 
   return (
     <>
@@ -288,10 +396,35 @@ function CreateRondaModalContent({
               {currentStep === TOTAL_STEPS ? (
                 <Button
                   className="h-[52px] flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-base text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+                  disabled={isCreatingRoscaGroup}
                   onClick={handleCreateRosca}
                 >
-                  Create ROSCA
-                  <Check className="size-5" />
+                  <AnimatePresence mode="wait">
+                    {isCreatingRoscaGroup ? (
+                      <motion.div
+                        animate={{ opacity: 1 }}
+                        className="flex items-center gap-2"
+                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }}
+                        key="creating-rosca-group"
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                      >
+                        <Loader2 className="size-5 animate-spin" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        animate={{ opacity: 1 }}
+                        className="flex items-center gap-2"
+                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }}
+                        key="create-rosca-group"
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                      >
+                        Create ROSCA
+                        <Check className="size-5" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </Button>
               ) : (
                 <Button

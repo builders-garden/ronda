@@ -3,7 +3,7 @@ import { useApiMutation } from "./use-api-mutation";
 
 export type CreateParticipantInput = {
   groupId: string;
-  userId: string;
+  userAddress: string;
   accepted?: boolean;
   paid?: boolean;
   contributed?: boolean;

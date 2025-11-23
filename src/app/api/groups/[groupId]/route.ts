@@ -8,7 +8,7 @@ import { getServerSession } from "@/utils/better-auth";
 const updateGroupSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
-  groupOnchainId: z.string().min(1).optional(),
+  groupAddress: z.string().min(1).optional(),
 });
 
 export async function PATCH(

@@ -7,7 +7,7 @@ import { getServerSession } from "@/utils/better-auth";
 const createGroupSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  groupOnchainId: z.string().min(1),
+  groupAddress: z.string().min(1),
 });
 
 export async function POST(request: Request) {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       .values({
         name: parsed.data.name,
         description: parsed.data.description,
-        groupOnchainId: parsed.data.groupOnchainId,
+        groupAddress: parsed.data.groupAddress,
         creatorId: session.user.id,
       })
       .returning();

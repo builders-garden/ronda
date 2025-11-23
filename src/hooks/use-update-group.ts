@@ -5,7 +5,7 @@ export type UpdateGroupInput = {
   groupId: string;
   name?: string;
   description?: string;
-  groupOnchainId?: string;
+  groupAddress?: string;
 };
 
 export type UpdateGroupResponse = {

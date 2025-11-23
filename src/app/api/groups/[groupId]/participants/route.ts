@@ -6,7 +6,7 @@ import { groups, participants } from "@/lib/database/db.schema";
 import { getServerSession } from "@/utils/better-auth";
 
 const createParticipantSchema = z.object({
-  userId: z.string().min(1),
+  userAddress: z.string().min(1),
   accepted: z.boolean().optional(),
   paid: z.boolean().optional(),
   contributed: z.boolean().optional(),
@@ -61,7 +61,7 @@ export async function POST(
     const existingParticipant = await db.query.participants.findFirst({
       where: and(
         eq(participants.groupId, groupId),
-        eq(participants.userId, parsed.data.userId)
+        eq(participants.userAddress, parsed.data.userAddress)
       ),
     });
 
@@ -76,7 +76,7 @@ export async function POST(
       .insert(participants)
       .values({
         groupId,
-        userId: parsed.data.userId,
+        userAddress: parsed.data.userAddress,
         accepted: parsed.data.accepted ?? false,
         paid: parsed.data.paid ?? false,
         contributed: parsed.data.contributed ?? false,

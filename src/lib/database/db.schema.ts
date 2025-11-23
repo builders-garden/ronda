@@ -140,7 +140,7 @@ export const groups = sqliteTable("groups", {
   creatorId: text("creator_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  groupOnchainId: text("group_onchain_id").notNull(),
+  groupAddress: text("group_address").notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
@@ -160,9 +160,7 @@ export const participants = sqliteTable("participants", {
   groupId: text("group_id")
     .notNull()
     .references(() => groups.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+  userAddress: text("user_address").notNull(),
   accepted: integer("accepted", { mode: "boolean" }).default(false).notNull(),
   acceptedAt: integer("accepted_at", { mode: "timestamp_ms" }),
   paid: integer("paid", { mode: "boolean" }).default(false).notNull(),
@@ -249,9 +247,5 @@ export const participantsRelations = relations(participants, ({ one }) => ({
   group: one(groups, {
     fields: [participants.groupId],
     references: [groups.id],
-  }),
-  user: one(user, {
-    fields: [participants.userId],
-    references: [user.id],
   }),
 }));
