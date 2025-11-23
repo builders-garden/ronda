@@ -7,6 +7,9 @@ export type MockPayoutResponse = {
   totalEligible?: number;
   message?: string;
   error?: string;
+  details?: string;
+  txHash?: string | null;
+  blockNumber?: string;
 };
 
 interface UseMockPayoutOptions

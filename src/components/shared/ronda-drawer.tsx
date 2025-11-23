@@ -33,7 +33,6 @@ import { useMockPayout } from "@/hooks/use-mock-payout";
 import { useUpdateParticipant } from "@/hooks/use-update-participant";
 import { RondaStatus } from "@/lib/enum";
 import {
-  useDistributeFunds,
   useGetGroupInfoDetailed,
   useGetNextPayoutDeadline,
   useHasUserDepositedCurrentPeriod,
@@ -381,14 +380,6 @@ export const RondaDrawer = ({
     error: joinError,
   } = useJoinGroup(contractAddress);
 
-  // Distribute funds hook
-  const {
-    distributeFunds,
-    isPending: isDistributing,
-    isSuccess: distributeSuccess,
-    error: distributeError,
-  } = useDistributeFunds(contractAddress);
-
   // Mock payout query - only enabled manually when needed
   const { refetch: refetchMockPayout, isFetching: isFetchingMockPayout } =
     useMockPayout({
@@ -435,31 +426,37 @@ export const RondaDrawer = ({
   // Handle join error
   useEffect(() => {
     if (joinError) {
-      toast.error("Failed to join group. Please try again.");
+      let errorMessage = "Failed to join group";
+      let errorDescription = "Please try again";
+
+      // Parse common error messages
+      const errorString = joinError.message || String(joinError);
+      if (errorString.includes("user rejected")) {
+        errorMessage = "Transaction rejected";
+        errorDescription = "You rejected the transaction";
+      } else if (errorString.includes("insufficient funds")) {
+        errorMessage = "Insufficient funds";
+        errorDescription =
+          "You don't have enough funds to complete this transaction";
+      } else if (errorString.includes("already a member")) {
+        errorMessage = "Already a member";
+        errorDescription = "You are already a member of this group";
+      } else if (errorString.includes("not invited")) {
+        errorMessage = "Not invited";
+        errorDescription = "You need to be invited to join this group";
+      } else if (errorString.includes("gas")) {
+        errorMessage = "Transaction failed";
+        errorDescription = "Gas estimation failed. Please try again";
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+        duration: 5000,
+      });
+
       console.error("Join error:", joinError);
     }
   }, [joinError]);
-
-  // Handle distribute funds success
-  useEffect(() => {
-    if (distributeSuccess) {
-      toast.success("Funds distributed successfully!");
-      setIsProcessingPayout(false);
-
-      // Refetch group data
-      refetchGroupInfo();
-      refetchParticipants();
-    }
-  }, [distributeSuccess, refetchGroupInfo, refetchParticipants]);
-
-  // Handle distribute funds error
-  useEffect(() => {
-    if (distributeError) {
-      toast.error("Failed to distribute funds. Please try again.");
-      console.error("Distribute error:", distributeError);
-      setIsProcessingPayout(false);
-    }
-  }, [distributeError]);
 
   // Handle deposit success - refetch all data when deposit completes
   useEffect(() => {
@@ -529,41 +526,102 @@ export const RondaDrawer = ({
     setIsProcessingPayout(true);
 
     try {
-      // Fetch eligible addresses from mock payout endpoint
+      // Call the mock payout endpoint which will distribute funds on-chain
       const result = await refetchMockPayout();
 
+      // Handle error responses from the API
       if (result.data?.error) {
-        toast.error(result.data.error);
+        const errorMessage = result.data.error;
+
+        // Show user-friendly error message
+        toast.error(errorMessage, {
+          description: result.data.txHash
+            ? `Transaction: ${result.data.txHash.slice(0, 10)}...${result.data.txHash.slice(-8)}`
+            : undefined,
+          duration: 5000,
+        });
+
         setIsProcessingPayout(false);
         return;
       }
 
-      if (result.data?.addresses && result.data.addresses.length > 0) {
-        // The API returns addresses as string[][], we need to flatten it
-        const eligibleAddresses = result.data.addresses as Address[];
+      // Handle successful distribution
+      if (result.data?.success) {
+        const { addresses, txHash, blockNumber } = result.data;
 
-        if (eligibleAddresses.length === 0) {
-          toast.info("No eligible participants for payout");
+        if (addresses && addresses.length > 0) {
+          toast.success(
+            `Successfully distributed funds to ${addresses.length} participant(s)!`,
+            {
+              description: txHash
+                ? `Transaction: ${txHash.slice(0, 10)}...${txHash.slice(-8)}`
+                : undefined,
+              duration: 5000,
+            }
+          );
+
+          if (txHash) {
+            console.log(`Transaction hash: ${txHash}`);
+            console.log(`Block number: ${blockNumber}`);
+          }
+
+          // Refetch group data after successful distribution
+          try {
+            await Promise.all([
+              refetchGroupInfo(),
+              refetchParticipants(),
+              refetchHasDeposited(),
+            ]);
+          } catch (refetchError) {
+            console.error("Error refetching data:", refetchError);
+            toast.warning(
+              "Payout successful but failed to refresh data. Please reload the page.",
+              {
+                duration: 5000,
+              }
+            );
+          }
+        } else {
+          toast.info("Error distributing funds");
           setIsProcessingPayout(false);
-          return;
         }
-
-        toast.info(
-          `Found ${eligibleAddresses.length} eligible participant(s). Distributing funds...`
-        );
-
-        console.log("eligibleAddresses", eligibleAddresses);
-
-        // Call distributeFunds with the addresses
-        // Note: setIsProcessingPayout(false) will be called in the success/error handlers
-        distributeFunds(eligibleAddresses);
       } else {
-        toast.info("No eligible participants for payout");
-        setIsProcessingPayout(false);
+        // Handle cases where there's a message but no success
+        const message = result.data?.message || "Error distributing funds";
+        toast.info(message, {
+          duration: 4000,
+        });
       }
+
+      setIsProcessingPayout(false);
     } catch (error) {
       console.error("Error processing mock payout:", error);
-      toast.error("Failed to process payout");
+
+      // Handle different types of errors
+      let errorMessage = "Failed to process payout";
+      let errorDescription = "Please try again";
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage = "Network error";
+          errorDescription = "Please check your connection and try again";
+        } else if (error.message.includes("timeout")) {
+          errorMessage = "Request timed out";
+          errorDescription =
+            "The transaction may still be processing. Please check back in a moment";
+        } else {
+          errorDescription = error.message;
+        }
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+        duration: 5000,
+      });
+
       setIsProcessingPayout(false);
     }
   };
@@ -603,7 +661,10 @@ export const RondaDrawer = ({
   const handleVerifyIdentity = async () => {
     toast.info("Opening Self verification...");
     if (!(address && contractAddress)) {
-      toast.error("Missing required information for verification");
+      toast.error("Missing required information", {
+        description: "Please connect your wallet and try again",
+        duration: 4000,
+      });
       return;
     }
 
@@ -663,11 +724,32 @@ export const RondaDrawer = ({
       // Get the universal link
       const deeplink = getUniversalLink(app);
       console.log("deeplink", deeplink);
+
       // Open the Self app
       await sdk.actions.openUrl(deeplink);
     } catch (error) {
       console.error("Error opening Self verification:", error);
-      toast.error("Failed to open verification");
+
+      let errorMessage = "Failed to open verification";
+      let errorDescription = "Please try again";
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes("SDK") ||
+          error.message.includes("actions")
+        ) {
+          errorMessage = "SDK error";
+          errorDescription =
+            "Unable to open the verification app. Please make sure you're using a supported browser";
+        } else {
+          errorDescription = error.message;
+        }
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+        duration: 5000,
+      });
     }
   };
 
@@ -851,11 +933,7 @@ export const RondaDrawer = ({
                   {/* Mock Payout Button */}
                   <Button
                     className="relative z-10 h-14 w-full cursor-pointer rounded-2xl border border-[rgba(123,143,245,0.3)] bg-[#7b8ff5] font-semibold text-[14px] text-white tracking-[-0.35px] hover:bg-[#7b8ff5]/90 disabled:opacity-70"
-                    disabled={
-                      isProcessingPayout ||
-                      isDistributing ||
-                      isFetchingMockPayout
-                    }
+                    disabled={isProcessingPayout || isFetchingMockPayout}
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -865,27 +943,18 @@ export const RondaDrawer = ({
                     type="button"
                   >
                     <AnimatePresence mode="wait">
-                      {isFetchingMockPayout ? (
+                      {isFetchingMockPayout || isProcessingPayout ? (
                         <motion.div
                           animate={{ opacity: 1 }}
                           className="pointer-events-none flex items-center justify-center"
                           exit={{ opacity: 0 }}
                           initial={{ opacity: 0 }}
-                          key="fetching"
+                          key="processing"
                         >
                           <Loader2 className="mr-2 size-5 animate-spin" />
-                          Fetching addresses...
-                        </motion.div>
-                      ) : isDistributing || isProcessingPayout ? (
-                        <motion.div
-                          animate={{ opacity: 1 }}
-                          className="pointer-events-none flex items-center justify-center"
-                          exit={{ opacity: 0 }}
-                          initial={{ opacity: 0 }}
-                          key="distributing"
-                        >
-                          <Loader2 className="mr-2 size-5 animate-spin" />
-                          Distributing funds...
+                          {isFetchingMockPayout
+                            ? "Processing payout..."
+                            : "Distributing funds..."}
                         </motion.div>
                       ) : (
                         <motion.div
