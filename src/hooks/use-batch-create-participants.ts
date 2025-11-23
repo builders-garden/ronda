@@ -10,6 +10,7 @@ export type BatchCreateParticipantItem = {
 
 export type BatchCreateParticipantsInput = {
   groupId: string;
+  adminAddress: string;
   participants: BatchCreateParticipantItem[];
 };
 
