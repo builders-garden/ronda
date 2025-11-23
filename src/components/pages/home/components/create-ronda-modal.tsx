@@ -513,7 +513,7 @@ function CreateRondaModalContent({
 
           {/* Bottom Bar with Navigation Buttons and Progress Dots - Hide on success step */}
           {currentStep !== 5 && (
-            <div className="sticky bottom-0 flex flex-col gap-4 border-border border-t bg-white p-4">
+            <div className="flex flex-col gap-4 border-border border-t bg-white p-4">
               {/* Navigation Buttons */}
               <div className="flex items-center gap-3">
                 <Button
