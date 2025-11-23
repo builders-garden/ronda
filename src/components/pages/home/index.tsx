@@ -4,16 +4,37 @@ import { Plus, Star, UsersRound, Wallet } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { CircleCard } from "@/components/pages/circles/components/circle-card";
+import { useUserStats } from "@/hooks/use-user-stats";
 import { CreateRondaModal } from "./components/create-ronda-modal";
 import { HomeHeader } from "./components/home-header";
 import { InvitationCard } from "./components/invitation-card";
 import { SummaryCard } from "./components/summary-card";
 
+// Format currency value
+function formatCurrency(value: number): string {
+  if (value === 0) {
+    return "$0";
+  }
+  if (value < 1000) {
+    return `$${value.toFixed(0)}`;
+  }
+  if (value < 1_000_000) {
+    // Format with comma for thousands
+    return `$${(value / 1000).toFixed(1)}k`;
+  }
+  return `$${(value / 1_000_000).toFixed(2)}M`;
+}
+
 export default function HomePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { totalSaved, activeCircles, reliability, isLoading, readers } =
+    useUserStats();
 
   return (
     <>
+      {/* Render group stats readers */}
+      {readers}
+
       <motion.div
         animate={{ opacity: 1 }}
         className="relative flex w-full flex-col items-center justify-start bg-white pb-24"
@@ -32,21 +53,21 @@ export default function HomePage() {
               icon={Wallet}
               iconColor="text-zinc-900"
               label="Total Saved"
-              value="$2,450"
+              value={isLoading ? "..." : formatCurrency(totalSaved)}
             />
             <SummaryCard
               bgColor="bg-[rgba(123,143,245,0.1)]"
               icon={UsersRound}
               iconColor="text-[#7b8ff5]"
               label="Active Circles"
-              value="3"
+              value={isLoading ? "..." : activeCircles.toString()}
             />
             <SummaryCard
               bgColor="bg-[rgba(245,158,66,0.1)]"
               icon={Star}
               iconColor="text-[#f59e42]"
               label="Reliability"
-              value="98%"
+              value={isLoading ? "..." : `${reliability}%`}
             />
           </div>
 
