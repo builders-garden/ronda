@@ -247,7 +247,9 @@ function CreateRondaModalContent({
         operationCounter: BigInt(formData.numberOfCycles || 4),
         verificationType,
         minAge: BigInt(Number.parseInt(formData.minAge || "18", 10)),
-        allowedNationalities: formData.allowedNationalities || [],
+        allowedNationalities: formData.nationalityVerification
+          ? formData.allowedNationalities
+          : [],
         requiredGender:
           formData.allowedGenders === Genders.ALL
             ? ""
