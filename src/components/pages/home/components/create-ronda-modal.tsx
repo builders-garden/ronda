@@ -74,7 +74,8 @@ function CreateRondaModalContent({
   const { formData, resetFormData, canProceedFromStep } = useCreateRonda();
   const [currentStep, setCurrentStep] = useState(1);
   const [showWhatIsRosca, setShowWhatIsRosca] = useState(false);
-  const [isCreatingRoscaGroup, setIsCreatingRoscaGroup] = useState(false);
+  const [isDeployingContract, setIsDeployingContract] = useState(false);
+  const [isCreatingGroupRecord, setIsCreatingGroupRecord] = useState(false);
   const [_createdGroupId, setCreatedGroupId] = useState<string | null>(null);
   const [deployedContractAddress, setDeployedContractAddress] =
     useState<Address | null>(null);
@@ -87,10 +88,14 @@ function CreateRondaModalContent({
     deploy,
     hash: _deployHash,
     receipt: deployReceipt,
-    isPending: _isDeploying,
-    isConfirmed: _isDeployConfirmed,
+    isPending: isDeployPending,
+    isConfirming: isDeployConfirming,
+    isConfirmed: isDeployConfirmed,
     error: deployError,
   } = useDeployRondaProtocol();
+
+  // Combined loading state
+  const isCreatingRoscaGroup = isDeployingContract || isCreatingGroupRecord;
 
   // Group record creation hook
   const { mutate: createGroup } = useCreateGroup();
@@ -205,8 +210,8 @@ function CreateRondaModalContent({
         return;
       }
 
-      // Set the creating ROSCA group state to true
-      setIsCreatingRoscaGroup(true);
+      // Set the deploying contract state to true
+      setIsDeployingContract(true);
 
       // Generate the verification config based on the form data
       const verificationConfig: VerificationConfig = {
@@ -282,10 +287,17 @@ function CreateRondaModalContent({
     }
   };
 
-  // Extract contract address from deployment receipt (decoded transaction hash)
+  // Wait for deployment to complete and extract contract address
   // biome-ignore lint/correctness/useExhaustiveDependencies: <>
   useEffect(() => {
-    if (deployReceipt?.logs) {
+    // Only proceed if deployment is confirmed and we have a receipt
+    if (isDeployConfirmed && deployReceipt?.logs) {
+      console.log(
+        "Deployment confirmed, decoding contract address from receipt"
+      );
+      setIsDeployingContract(false);
+      setIsCreatingGroupRecord(true);
+
       try {
         // Decode the RondaProtocolDeployed event from the logs
         for (const log of deployReceipt.logs) {
@@ -295,7 +307,7 @@ function CreateRondaModalContent({
               data: log.data,
               topics: log.topics,
             });
-
+            console.log("Waiting for RondaProtocolDeployed event");
             if (decoded.eventName === "RondaProtocolDeployed" && decoded.args) {
               const args = decoded.args as unknown as {
                 groupId: bigint;
@@ -310,6 +322,8 @@ function CreateRondaModalContent({
               );
               // Store the deployed contract address for verification
               setDeployedContractAddress(deployedAddress);
+
+              // Now create the group record in the database
               createGroup(
                 {
                   name: formData.roscaName,
@@ -341,7 +355,7 @@ function CreateRondaModalContent({
                           } else {
                             toast.success("ROSCA group created successfully");
                           }
-                          setIsCreatingRoscaGroup(false);
+                          setIsCreatingGroupRecord(false);
                           setCreatedGroupId(groupId);
                           // Navigate to success step
                           setCurrentStep(5);
@@ -349,17 +363,18 @@ function CreateRondaModalContent({
                         onError: (error) => {
                           console.error("Error creating participants:", error);
                           toast.error("Failed to create participants");
-                          setIsCreatingRoscaGroup(false);
+                          setIsCreatingGroupRecord(false);
                         },
                       }
                     );
                   },
                   onError: () => {
                     toast.error("Failed to create ROSCA group");
-                    setIsCreatingRoscaGroup(false);
+                    setIsCreatingGroupRecord(false);
                   },
                 }
               );
+              break; // Exit loop once we found the event
             }
           } catch (_error) {
             // Ignore errors for events that don't match
@@ -367,16 +382,19 @@ function CreateRondaModalContent({
         }
       } catch (error) {
         console.error("Error decoding deployment event:", error);
+        toast.error("Failed to decode contract address");
+        setIsCreatingGroupRecord(false);
       }
     }
-  }, [deployReceipt]);
+  }, [isDeployConfirmed, deployReceipt]);
 
   // In case of deployment error, show the error message
   useEffect(() => {
     if (deployError) {
-      toast.error("Failed to create ROSCA group");
-      console.error("TEST Deployment error:", deployError);
-      setIsCreatingRoscaGroup(false);
+      toast.error("Failed to deploy ROSCA contract");
+      console.error("Deployment error:", deployError);
+      setIsDeployingContract(false);
+      setIsCreatingGroupRecord(false);
     }
   }, [deployError]);
 
@@ -512,16 +530,30 @@ function CreateRondaModalContent({
                     onClick={handleCreateRosca}
                   >
                     <AnimatePresence mode="wait">
-                      {isCreatingRoscaGroup ? (
+                      {isDeployingContract ? (
                         <motion.div
                           animate={{ opacity: 1 }}
                           className="flex items-center gap-2"
                           exit={{ opacity: 0 }}
                           initial={{ opacity: 0 }}
-                          key="creating-rosca-group"
+                          key="deploying-contract"
                           transition={{ duration: 0.2, ease: "easeInOut" }}
                         >
                           <Loader2 className="size-5 animate-spin" />
+                          {isDeployPending && "Submitting..."}
+                          {isDeployConfirming && "Deploying contract..."}
+                        </motion.div>
+                      ) : isCreatingGroupRecord ? (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-2"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="creating-group-record"
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                        >
+                          <Loader2 className="size-5 animate-spin" />
+                          Creating group...
                         </motion.div>
                       ) : (
                         <motion.div
