@@ -200,6 +200,7 @@ export function GroupCardWithData({
       createdDate={cardData.createdDate}
       currentPot={cardData.currentPot}
       currentWeek={cardData.currentWeek}
+      groupId={group.id}
       initialContent={initialPageContent}
       lastPayout={cardData.lastPayout}
       memberCount={cardData.memberCount}

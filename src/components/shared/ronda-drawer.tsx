@@ -24,9 +24,11 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useGroupParticipantsWithStatus } from "@/hooks/use-group-participants-with-status";
 import { RondaStatus } from "@/lib/enum";
 import {
   useGetGroupInfoDetailed,
+  useGetNextPayoutDeadline,
   useGetPeriodDeposits,
   useHasUserDepositedCurrentPeriod,
   useIsMember,
@@ -38,6 +40,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Progress } from "../ui/progress";
+import { ParticipantProfileCard } from "./participant-profile-card";
 import { ProfileCard } from "./profile-card";
 
 // USDC has 6 decimals
@@ -88,6 +91,8 @@ type RondaDrawerProps = {
   // Members and activity
   members?: Member[];
   activities?: Activity[];
+  // Backend group ID for fetching participants
+  groupId?: string;
   // Actions
   onDeposit?: () => void;
   onViewAllMembers?: () => void;
@@ -172,10 +177,21 @@ export const RondaDrawer = ({
   timeRemaining: timeRemainingProp,
   members,
   activities,
+  groupId,
   onDeposit,
   onViewAllMembers,
 }: RondaDrawerProps) => {
   const { address } = useAccount();
+
+  // Fetch participants with their status from backend and blockchain
+  const {
+    participants: participantsWithStatus,
+    isLoading: isLoadingParticipants,
+  } = useGroupParticipantsWithStatus({
+    groupId: groupId ?? "",
+    contractAddress,
+    enabled: !!groupId,
+  });
 
   // Fetch on-chain data
   const { data: groupInfo } = useGetGroupInfoDetailed(
@@ -186,6 +202,12 @@ export const RondaDrawer = ({
     contractAddress,
     address,
     !!contractAddress && !!address
+  );
+
+  // Get next payout deadline from smart contract
+  const { data: nextPayoutDeadline } = useGetNextPayoutDeadline(
+    contractAddress,
+    !!contractAddress
   );
 
   // Get current period deposits for pot amount
@@ -241,11 +263,20 @@ export const RondaDrawer = ({
     return `$${estimatedPot.toFixed(2)}`;
   }, [potAmountProp, periodDeposits, recurringAmount, currentWeek]);
 
-  // Calculate next payout date based on deposit frequency
+  // Calculate next payout date based on smart contract deadline
   const nextPayout = useMemo(() => {
     if (nextPayoutProp) {
       console.log("Next payout prop", nextPayoutProp);
       return nextPayoutProp;
+    }
+
+    if (nextPayoutDeadline) {
+      // Convert bigint timestamp (in seconds) to Date
+      const nextPayoutDate = new Date(Number(nextPayoutDeadline) * 1000);
+      return nextPayoutDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
     }
 
     if (!groupInfo) {
@@ -253,6 +284,7 @@ export const RondaDrawer = ({
       return "TBD";
     }
 
+    // Fallback calculation
     const depositFrequencyDays =
       Number(groupInfo.depositFrequency) / (24 * 60 * 60);
     const nextPayoutDate = new Date();
@@ -264,7 +296,7 @@ export const RondaDrawer = ({
       month: "short",
       day: "numeric",
     });
-  }, [nextPayoutProp, groupInfo]);
+  }, [nextPayoutProp, nextPayoutDeadline, groupInfo]);
 
   // Determine status from on-chain data
   const status = useMemo(() => {
@@ -290,10 +322,21 @@ export const RondaDrawer = ({
   }, [statusProp, groupInfo, currentWeek, totalWeeks, hasDeposited, address]);
 
   const name = nameProp ?? "Ronda Name";
-  const memberCount = memberCountProp ?? 12;
+  const memberCount = memberCountProp ?? (participantsWithStatus.length || 12);
   const createdDate = createdDateProp ?? "Dec 1, 2024";
 
-  const countdown = useCountdown(depositDeadline);
+  // Use smart contract deadline if available, otherwise use prop
+  const effectiveDepositDeadline = useMemo(() => {
+    if (depositDeadline) {
+      return depositDeadline;
+    }
+    if (nextPayoutDeadline) {
+      // Convert bigint timestamp (in seconds) to Date
+      return new Date(Number(nextPayoutDeadline) * 1000);
+    }
+  }, [depositDeadline, nextPayoutDeadline]);
+
+  const countdown = useCountdown(effectiveDepositDeadline);
   const timeRemaining = timeRemainingProp || countdown;
   const progress =
     progressProp ?? (totalWeeks ? (currentWeek / totalWeeks) * 100 : 0);
@@ -555,7 +598,35 @@ export const RondaDrawer = ({
             </div>
 
             <div className="flex w-full flex-col gap-2">
-              {members && members.length > 0 ? (
+              {isLoadingParticipants ? (
+                // Loading state
+                <>
+                  <ProfileCard
+                    avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=loading1"
+                    name="Loading..."
+                    status="pending"
+                    statusMessage="Loading participants"
+                  />
+                  <ProfileCard
+                    avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=loading2"
+                    name="Loading..."
+                    status="pending"
+                    statusMessage="Loading participants"
+                  />
+                </>
+              ) : participantsWithStatus.length > 0 ? (
+                // Show real participants from backend
+                participantsWithStatus
+                  .slice(0, 5)
+                  .map((participant) => (
+                    <ParticipantProfileCard
+                      currentUserAddress={address}
+                      key={participant.id}
+                      participant={participant}
+                    />
+                  ))
+              ) : members && members.length > 0 ? (
+                // Fallback to prop members
                 members.map((member, index) => (
                   <ProfileCard
                     avatar={member.avatar}
@@ -566,6 +637,7 @@ export const RondaDrawer = ({
                   />
                 ))
               ) : (
+                // Default placeholder
                 <>
                   <ProfileCard
                     avatar="https://github.com/shadcn.png"

@@ -336,3 +336,25 @@ export function useIsUserVerified(
     },
   });
 }
+
+// Hook to get the next payout deadline
+// Calculates lastBorrowTime + borrowFrequency
+export function useGetNextPayoutDeadline(
+  contractAddress: Address | undefined,
+  enabled = true
+) {
+  const { data: groupInfo, ...rest } = useGetGroupInfo(
+    contractAddress,
+    enabled
+  );
+
+  const nextPayoutDeadline = groupInfo
+    ? groupInfo.lastBorrowTime + groupInfo.borrowFrequency
+    : undefined;
+
+  return {
+    ...rest,
+    data: nextPayoutDeadline,
+    groupInfo, // Also return the full group info for additional context
+  };
+}
