@@ -417,6 +417,7 @@ export const RondaDrawer = ({
 
   // Verify identity handler
   const handleVerifyIdentity = async () => {
+    toast.info("Opening Self verification...");
     if (!(address && contractAddress)) {
       toast.error("Missing required information for verification");
       return;

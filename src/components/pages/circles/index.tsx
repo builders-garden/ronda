@@ -151,6 +151,19 @@ export default function CirclesPage({
     };
   }, [userGroupsData?.groups, groupStatuses, circleStatuses]);
 
+  useEffect(() => {
+    if (
+      initialPageContent &&
+      invitedGroups.some(
+        (group) =>
+          group.groupAddress.toLowerCase() ===
+          initialPageContent.circleAddress.toLowerCase()
+      )
+    ) {
+      setActiveTab("invites");
+    }
+  }, [initialPageContent, invitedGroups]);
+
   return (
     <motion.div
       animate={{ opacity: 1 }}
@@ -191,11 +204,7 @@ export default function CirclesPage({
       </div>
 
       {/* Tabs */}
-      <Tabs
-        className="w-full"
-        defaultValue="active"
-        onValueChange={setActiveTab}
-      >
+      <Tabs className="w-full" onValueChange={setActiveTab} value={activeTab}>
         <div className="border-border/50 border-b px-6 py-6">
           <TabsList className="h-auto w-auto bg-transparent p-0">
             <TabsTrigger
@@ -289,7 +298,11 @@ export default function CirclesPage({
               </div>
             ) : invitedGroups.length > 0 ? (
               invitedGroups.map((group) => (
-                <InvitationCardWithData group={group} key={group.id} />
+                <InvitationCardWithData
+                  group={group}
+                  initialContent={initialPageContent}
+                  key={group.id}
+                />
               ))
             ) : (
               <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">

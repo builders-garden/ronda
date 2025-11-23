@@ -1,11 +1,12 @@
 import { Calendar, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Address } from "viem";
 import { RondaDrawer } from "@/components/shared/ronda-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RondaStatus } from "@/lib/enum";
+import { usePageContent } from "@/contexts/page-content-context";
+import { type CirclesPageContent, RondaStatus } from "@/lib/enum";
 
 type InvitationCardProps = {
   name: string;
@@ -20,11 +21,13 @@ type InvitationCardProps = {
   createdDate?: string;
   groupId?: string;
   contractAddress?: Address;
+  initialContent?: CirclesPageContent;
   onAccept?: () => void;
   onDecline?: () => void;
 };
 
 export function InvitationCard({
+  initialContent,
   name,
   memberCount,
   weeklyAmount,
@@ -41,6 +44,15 @@ export function InvitationCard({
   onDecline,
 }: InvitationCardProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
+    usePageContent();
+
+  useEffect(() => {
+    if (initialContent && !hasOpenedInitialDrawer) {
+      setIsDrawerOpen(true);
+      setHasOpenedInitialDrawer(true);
+    }
+  }, [initialContent, hasOpenedInitialDrawer, setHasOpenedInitialDrawer]);
 
   const handleAccept = (e: React.MouseEvent) => {
     e.stopPropagation();

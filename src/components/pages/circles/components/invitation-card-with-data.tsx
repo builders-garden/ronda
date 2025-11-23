@@ -6,6 +6,7 @@ import { formatUnits } from "viem";
 import { InvitationCard } from "@/components/pages/home/components/invitation-card";
 import { useGroupParticipants } from "@/hooks/use-group-participants";
 import type { groups } from "@/lib/database/db.schema";
+import type { CirclesPageContent } from "@/lib/enum";
 import {
   useGetGroupInfoDetailed,
   useGetPeriodDeposits,
@@ -27,9 +28,16 @@ export type InvitationCardData = {
   nextPayout?: string;
   currentWeek?: number;
   createdDate?: string;
+  initialContent?: CirclesPageContent;
 };
 
-export function InvitationCardWithData({ group }: { group: Group }) {
+export function InvitationCardWithData({
+  group,
+  initialContent,
+}: {
+  group: Group;
+  initialContent?: CirclesPageContent;
+}) {
   const groupAddress = group.groupAddress as Address | undefined;
 
   // Fetch participants for member count
@@ -153,6 +161,7 @@ export function InvitationCardWithData({ group }: { group: Group }) {
       currentWeek={cardData.currentWeek}
       dueDate={cardData.dueDate}
       groupId={group.id}
+      initialContent={initialContent}
       memberCount={cardData.memberCount}
       name={cardData.name}
       nextPayout={cardData.nextPayout}
