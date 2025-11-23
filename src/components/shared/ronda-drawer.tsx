@@ -731,6 +731,18 @@ export const RondaDrawer = ({
         disclosures,
       }).build();
 
+      console.log({
+        appName: "Ronda Protocol",
+        scope: scopeSeed,
+        userId: address,
+        userIdType: "hex",
+        endpoint: contractAddress.toLowerCase(),
+        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
+        endpointType: "celo",
+        userDefinedData: "Verify your identity to join the group",
+        disclosures,
+      });
+
       // Get the universal link
       const deeplink = getUniversalLink(app);
       console.log("deeplink", deeplink);
