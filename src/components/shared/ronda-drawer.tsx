@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGroupParticipantsWithStatus } from "@/hooks/use-group-participants-with-status";
+import { useUpdateParticipant } from "@/hooks/use-update-participant";
 import { RondaStatus } from "@/lib/enum";
 import {
   useGetGroupInfoDetailed,
@@ -193,11 +194,14 @@ export const RondaDrawer = ({
   const {
     participants: participantsWithStatus,
     isLoading: isLoadingParticipants,
+    refetch: refetchParticipants,
   } = useGroupParticipantsWithStatus({
     groupId: groupId ?? "",
     contractAddress,
     enabled: !!groupId,
   });
+
+  const { mutate: updateParticipant } = useUpdateParticipant();
 
   // Fetch on-chain data
   const { data: groupInfo } = useGetGroupInfoDetailed(
@@ -372,6 +376,9 @@ export const RondaDrawer = ({
     Boolean(contractAddress && address)
   );
 
+  console.log("isMember", isMember);
+  console.log("isVerified", isVerified);
+
   // Join group hook
   const {
     joinGroup,
@@ -382,13 +389,39 @@ export const RondaDrawer = ({
 
   // Handle join success
   useEffect(() => {
-    if (joinSuccess) {
+    if (joinSuccess && address && groupId) {
       toast.success("Successfully joined the group!");
+
+      // Find the current user's participant record
+      const currentUserParticipant = participantsWithStatus.find(
+        (p) => p.userAddress.toLowerCase() === address.toLowerCase()
+      );
+
+      // Update the participant's accepted status in the backend
+      if (currentUserParticipant) {
+        updateParticipant({
+          groupId,
+          participantId: currentUserParticipant.id,
+          accepted: true,
+          acceptedAt: new Date().toISOString(),
+        });
+      }
+
       // Refetch member and verification status to update UI
+      refetchParticipants();
       refetchIsMember();
       refetchIsVerified();
     }
-  }, [joinSuccess, refetchIsMember, refetchIsVerified]);
+  }, [
+    joinSuccess,
+    address,
+    groupId,
+    participantsWithStatus,
+    updateParticipant,
+    refetchIsMember,
+    refetchIsVerified,
+    refetchParticipants,
+  ]);
 
   // Handle join error
   useEffect(() => {
