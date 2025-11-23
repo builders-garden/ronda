@@ -19,6 +19,7 @@ export enum RondaStatus {
 }
 
 export enum Frequency {
+  DEMO = "demo",
   WEEKLY = "weekly",
   BIWEEKLY = "biweekly",
   MONTHLY = "monthly",

@@ -6,8 +6,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import { InvitationCardWithData } from "@/components/pages/circles/components/invitation-card-with-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePageContent } from "@/contexts/page-content-context";
 import { useUserGroups } from "@/hooks/use-user-groups";
 import { useUserStats } from "@/hooks/use-user-stats";
+import { MainPageContent } from "@/lib/enum";
 import { useIsInvited, useIsMember } from "@/lib/smart-contracts/hooks";
 import { CreateRondaModal } from "./components/create-ronda-modal";
 import { GroupCardWithData } from "./components/group-card-with-data";
@@ -95,12 +98,16 @@ export default function HomePage() {
   const { address } = useAccount();
   const { totalSaved, activeCircles, reliability, isLoading, readers } =
     useUserStats();
-  const { data: userGroupsData, isLoading: isLoadingGroups } = useUserGroups({
+  const { setContent } = usePageContent();
+  const {
+    data: userGroupsData,
+    isLoading: isLoadingGroups,
+    refetch: refetchUserGroups,
+    isRefetching: isRefetchingUserGroups,
+  } = useUserGroups({
     address: address || "",
     enabled: !!address,
   });
-
-  console.log("USER GROUPS DATA", { userGroupsData });
 
   // Track group statuses (member/invited)
   const [groupStatuses, setGroupStatuses] = useState<
@@ -142,11 +149,6 @@ export default function HomePage() {
     for (const group of userGroupsData.groups) {
       const status = groupStatuses.get(group.id);
 
-      console.log("GROUP NAME", {
-        groupName: group.name,
-        status,
-      });
-
       // If we don't have status yet, default to showing as active member
       // This prevents the UI from being empty while statuses load
       if (!status) {
@@ -167,7 +169,7 @@ export default function HomePage() {
     }
 
     return { activeCirclesList: active, invitedGroups: invited };
-  }, [userGroupsData?.groups, groupStatuses]);
+  }, [userGroupsData, groupStatuses]);
 
   return (
     <>
@@ -236,24 +238,28 @@ export default function HomePage() {
           <div className="flex w-full flex-col items-center justify-start gap-4">
             <div className="flex w-full items-center justify-between">
               <h2 className="font-bold text-[20px] text-zinc-950 tracking-[-0.5px]">
-                Your Circles
+                Your Circles ({activeCirclesList.length})
               </h2>
               <motion.button
                 className="cursor-pointer font-semibold text-[14px] text-zinc-900 tracking-[-0.35px] hover:underline"
+                onClick={() => setContent(MainPageContent.CIRCLES)}
                 whileTap={{ scale: 0.98 }}
               >
                 View All
               </motion.button>
             </div>
             <div className="flex w-full flex-col items-center justify-start gap-4">
-              {isLoadingGroups ? (
-                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
-                  Loading circles...
+              {isLoadingGroups || isRefetchingUserGroups ? (
+                <div className="flex w-full flex-col items-center justify-start gap-4">
+                  <Skeleton className="h-[364px] w-full" />
+                  <Skeleton className="h-[364px] w-full" />
                 </div>
               ) : activeCirclesList.length > 0 ? (
-                activeCirclesList.map((group) => (
-                  <GroupCardWithData group={group} key={group.id} />
-                ))
+                activeCirclesList
+                  .slice(0, 2)
+                  .map((group) => (
+                    <GroupCardWithData group={group} key={group.id} />
+                  ))
               ) : (
                 <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
                   No circles yet. Create your first circle!
@@ -279,13 +285,19 @@ export default function HomePage() {
               )}
             </div>
             <div className="flex w-full flex-col items-center justify-start gap-4">
-              {isLoadingGroups ? (
-                <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">
-                  Loading invitations...
+              {isLoadingGroups || isRefetchingUserGroups ? (
+                <div className="flex w-full flex-col items-center justify-start gap-4">
+                  <Skeleton className="h-[215px] w-full" />
+                  <Skeleton className="h-[215px] w-full" />
+                  <Skeleton className="h-[215px] w-full" />
                 </div>
               ) : invitedGroups.length > 0 ? (
                 invitedGroups.map((group) => (
-                  <InvitationCardWithData group={group} key={group.id} />
+                  <InvitationCardWithData
+                    group={group}
+                    key={group.id}
+                    refetchUserGroups={refetchUserGroups}
+                  />
                 ))
               ) : (
                 <div className="flex w-full items-center justify-center py-8 text-[#6f7780] text-sm">

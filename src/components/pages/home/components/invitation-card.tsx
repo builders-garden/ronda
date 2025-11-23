@@ -1,4 +1,5 @@
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Loader2, Users } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Address } from "viem";
 import { RondaDrawer } from "@/components/shared/ronda-drawer";
@@ -22,11 +23,13 @@ type InvitationCardProps = {
   groupId?: string;
   contractAddress?: Address;
   initialContent?: CirclesPageContent;
+  isJoining?: boolean;
   onAccept?: () => void;
   onDecline?: () => void;
 };
 
 export function InvitationCard({
+  isJoining,
   initialContent,
   name,
   memberCount,
@@ -81,7 +84,7 @@ export function InvitationCard({
       totalWeeks={totalWeeks}
       weeklyAmount={weeklyAmount}
     >
-      <Card className="flex w-full flex-col gap-4 rounded-[24px] border border-border bg-white p-6 shadow-none">
+      <Card className="flex h-[215px] max-h-[215px] min-h-[215px] w-full flex-col gap-4 rounded-[24px] border border-border bg-white p-6 shadow-none">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
@@ -140,17 +143,42 @@ export function InvitationCard({
 
         <div className="flex gap-3">
           <Button
-            className="h-14 flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] hover:bg-primary/90"
-            onClick={handleAccept}
-          >
-            Accept
-          </Button>
-          <Button
-            className="h-14 flex-1 cursor-pointer rounded-2xl bg-zinc-100 font-semibold text-[16px] text-zinc-950 tracking-[-0.4px] hover:bg-zinc-200"
+            className="h-14 flex-1 cursor-pointer rounded-2xl bg-transparent font-semibold text-[16px] text-muted tracking-[-0.4px] hover:bg-muted-foreground/5"
+            disabled={isJoining}
             onClick={handleDecline}
             variant="outline"
           >
             Decline
+          </Button>
+          <Button
+            className="h-14 flex-1 cursor-pointer rounded-2xl bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] hover:bg-primary/90"
+            disabled={isJoining}
+            onClick={handleAccept}
+          >
+            <AnimatePresence mode="wait">
+              {isJoining ? (
+                <motion.div
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center"
+                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  key="joining"
+                >
+                  <Loader2 className="mr-2 size-5 animate-spin" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center"
+                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0 }}
+                  key="accept"
+                >
+                  <Users className="mr-2 size-5" strokeWidth={2} />
+                  Accept
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Button>
         </div>
       </Card>
