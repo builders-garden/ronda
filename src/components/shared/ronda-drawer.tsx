@@ -40,7 +40,7 @@ import {
   useIsUserVerified,
   useJoinGroup,
 } from "@/lib/smart-contracts/hooks";
-import { cn } from "@/utils";
+import { cn, normalizeToSlug } from "@/utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -871,9 +871,14 @@ export const RondaDrawer = ({
             <Card className="flex w-full flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col gap-2">
-                  <h2 className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
-                    {name}
-                  </h2>
+                  <div className="flex flex-col items-start">
+                    <h2 className="font-bold text-[18px] text-zinc-950 tracking-[-0.45px]">
+                      {name}
+                    </h2>
+                    <p className="text-muted-foreground/40 text-xs">
+                      {normalizeToSlug(name)}.rosca.eth
+                    </p>
+                  </div>
                   <div className="flex items-center gap-2 text-[#6f7780] text-[12px]">
                     <Calendar className="size-3.5" strokeWidth={2} />
                     <span className="font-normal">Created {createdDate}</span>

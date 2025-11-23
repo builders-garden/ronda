@@ -14,7 +14,7 @@ import { CELO_USDC_ADDRESS } from "@/lib/constants";
 import type { CirclesPageContent } from "@/lib/enum";
 import { RONDA_PROTOCOL_ABI } from "@/lib/smart-contracts";
 import { wagmiConfigMiniApp } from "@/lib/wagmi";
-import { cn } from "@/utils";
+import { cn, normalizeToSlug } from "@/utils";
 
 type CircleStatus = "active" | "deposit_due" | "completed";
 
@@ -199,10 +199,15 @@ export function CircleCard({
       <Card className="flex h-[364px] max-h-[364px] min-h-[364px] w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
         {/* Header: Name and Status Badge */}
         <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-2">
-            <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
-              {name}
-            </h2>
+          <div className="flex flex-col items-start gap-2">
+            <div className="flex flex-col items-start">
+              <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
+                {name}
+              </h2>
+              <p className="text-muted-foreground/40 text-xs">
+                {normalizeToSlug(name)}.rosca.eth
+              </p>
+            </div>
             <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Users className="size-4" strokeWidth={2} />

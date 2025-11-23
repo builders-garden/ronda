@@ -6,6 +6,7 @@ export type BatchCreateParticipantItem = {
   accepted?: boolean;
   paid?: boolean;
   contributed?: boolean;
+  farcasterFid?: number;
 };
 
 export type BatchCreateParticipantsInput = {

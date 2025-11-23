@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePageContent } from "@/contexts/page-content-context";
 import { type CirclesPageContent, RondaStatus } from "@/lib/enum";
+import { normalizeToSlug } from "@/utils";
 
 type InvitationCardProps = {
   name: string;
@@ -87,10 +88,15 @@ export function InvitationCard({
       <Card className="flex h-[215px] max-h-[215px] min-h-[215px] w-full flex-col gap-4 rounded-[24px] border border-border bg-white p-6 shadow-none">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
-            <div className="flex flex-col gap-2">
-              <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
-                {name}
-              </h2>
+            <div className="flex flex-col items-start gap-2">
+              <div className="flex flex-col items-start">
+                <h2 className="font-bold text-[18px] text-muted tracking-[-0.45px]">
+                  {name}
+                </h2>
+                <p className="text-muted-foreground/40 text-xs">
+                  {normalizeToSlug(name)}.rosca.eth
+                </p>
+              </div>
               <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Users className="size-4" strokeWidth={2} />

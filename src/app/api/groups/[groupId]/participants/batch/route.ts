@@ -3,13 +3,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/database";
 import { groups, participants } from "@/lib/database/db.schema";
+import { getUserNotificationDetails } from "@/lib/database/queries/farcaster.query";
+import { env } from "@/lib/env";
 import { getServerSession } from "@/utils/better-auth";
+import { sendFarcasterNotification } from "@/utils/farcaster-notification";
 
 const createParticipantItemSchema = z.object({
   userAddress: z.string().min(1),
   accepted: z.boolean().optional(),
   paid: z.boolean().optional(),
   contributed: z.boolean().optional(),
+  farcasterFid: z.number().optional(),
 });
 
 const batchCreateParticipantsSchema = z.object({
@@ -53,8 +57,11 @@ export async function POST(
       );
     }
 
-    // Get all addresses from the request
+    // Get all addresses and fids from the request
     const addresses = parsed.data.participants.map((p) => p.userAddress);
+    const fids = parsed.data.participants
+      .map((p) => p.farcasterFid)
+      .filter((f) => f !== undefined);
     const adminAddress = parsed.data.adminAddress;
 
     // Check for existing participants
@@ -93,6 +100,34 @@ export async function POST(
         }))
       )
       .returning();
+
+    // Send a notification to all participants except the admin
+    console.log("TEST Sending notification to Farcaster users: ", fids);
+    for (const fid of fids) {
+      try {
+        if (fid) {
+          const userNotificationDetails = await getUserNotificationDetails(fid);
+          console.log(
+            "TEST User notification details: ",
+            JSON.stringify(userNotificationDetails[0], null, 2)
+          );
+          if (userNotificationDetails.length > 0) {
+            await sendFarcasterNotification({
+              fid,
+              title: "ROSCA group created",
+              body: "You have been added to a new savings group on Ronda!",
+              notificationDetails: userNotificationDetails[0],
+              targetUrl: env.NEXT_PUBLIC_URL,
+            });
+          }
+        }
+      } catch {
+        console.log(
+          "Error sending notification to Farcaster user with fid: ",
+          fid
+        );
+      }
+    }
 
     return NextResponse.json(
       {
