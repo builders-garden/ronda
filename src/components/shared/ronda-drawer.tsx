@@ -351,15 +351,22 @@ export const RondaDrawer = ({
   const isCompleted = status === RondaStatus.COMPLETED;
 
   // Check if user is verified
-  const { data: isVerified, isLoading: isLoadingVerification } =
-    useIsUserVerified(
-      contractAddress,
-      address,
-      Boolean(contractAddress && address)
-    );
+  const {
+    data: isVerified,
+    isLoading: isLoadingVerification,
+    refetch: refetchIsVerified,
+  } = useIsUserVerified(
+    contractAddress,
+    address,
+    Boolean(contractAddress && address)
+  );
 
   // Check if user is already a member
-  const { data: isMember, isLoading: isLoadingMember } = useIsMember(
+  const {
+    data: isMember,
+    isLoading: isLoadingMember,
+    refetch: refetchIsMember,
+  } = useIsMember(
     contractAddress,
     address,
     Boolean(contractAddress && address)
@@ -377,8 +384,11 @@ export const RondaDrawer = ({
   useEffect(() => {
     if (joinSuccess) {
       toast.success("Successfully joined the group!");
+      // Refetch member and verification status to update UI
+      refetchIsMember();
+      refetchIsVerified();
     }
-  }, [joinSuccess]);
+  }, [joinSuccess, refetchIsMember, refetchIsVerified]);
 
   // Handle join error
   useEffect(() => {
@@ -401,21 +411,41 @@ export const RondaDrawer = ({
     }
   };
 
-  // Determine if we should show join button or disclaimer
+  const handleDecline = () => {
+    toast.info("You declined the invitation");
+    setIsDrawerOpen(false);
+  };
+
+  // Determine which button to show based on user state
+  // Priority order:
+  // 1. Not a member → Show Join button
+  // 2. Member but not verified → Show Verify button
+  // 3. Member and verified but hasn't deposited → Show Deposit button
+  // 4. None of the above → Show no sticky buttons
+
   const shouldShowJoinButton =
     contractAddress &&
     address &&
     !isLoadingVerification &&
     !isLoadingMember &&
-    isVerified === true &&
     isMember === false;
 
-  const shouldShowDisclaimer =
+  const shouldShowVerifyButton =
     contractAddress &&
     address &&
     !isLoadingVerification &&
     !isLoadingMember &&
+    isMember === true &&
     isVerified === false;
+
+  const shouldShowDepositButton =
+    contractAddress &&
+    address &&
+    !isLoadingVerification &&
+    !isLoadingMember &&
+    isMember === true &&
+    isVerified === true &&
+    isDepositDue;
 
   // Verify identity handler
   const handleVerifyIdentity = async () => {
@@ -458,9 +488,7 @@ export const RondaDrawer = ({
             disclosures.date_of_birth = true;
             disclosures.minimumAge = Number(groupInfo.minAge);
           }
-
-          // OFAC is always enabled when verification is required
-          disclosures.ofac = true;
+          disclosures.ofac = false;
         }
       }
 
@@ -480,9 +508,21 @@ export const RondaDrawer = ({
         disclosures,
       }).build();
 
+      console.log("app", {
+        appName: "Ronda Protocol",
+        scope: scopeSeed,
+        userId: address,
+        userIdType: "hex",
+        endpoint: contractAddress.toLowerCase(),
+        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
+        endpointType: "celo",
+        userDefinedData: "Verify your identity to join the group",
+        disclosures,
+      });
+
       // Get the universal link
       const deeplink = getUniversalLink(app);
-
+      console.log("deeplink", deeplink);
       // Open the Self app
       await sdk.actions.openUrl(deeplink);
     } catch (error) {
@@ -542,15 +582,19 @@ export const RondaDrawer = ({
       >
         {children}
       </DrawerTrigger>
-      <DrawerContent className="w-full rounded-none border-none focus:outline-none">
+      <DrawerContent className="flex h-full w-full flex-col rounded-none border-none focus:outline-none">
         <DrawerHeader className="hidden">
           <DrawerTitle />
           <DrawerDescription />
         </DrawerHeader>
-        <div className="flex h-[69px] w-full items-center justify-between border-[rgba(232,235,237,0.5)] border-b bg-white px-4">
+        <div className="flex h-[69px] w-full shrink-0 items-center justify-between border-[rgba(232,235,237,0.5)] border-b bg-white px-4">
           <motion.button
             className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-[rgba(244,244,245,0.5)]"
-            onClick={() => setIsDrawerOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDrawerOpen(false);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
             type="button"
             whileTap={{ scale: 0.98 }}
           >
@@ -568,10 +612,7 @@ export const RondaDrawer = ({
         </div>
 
         <ScrollArea
-          className={cn(
-            "w-full",
-            isDepositDue ? "h-[calc(100vh-69px-80px)]" : "h-[calc(100vh-69px)]"
-          )}
+          className="w-full flex-1"
           scrollBarClassName="opacity-0 w-0"
         >
           <div className="flex w-full flex-col gap-6 px-4 py-6">
@@ -782,9 +823,12 @@ export const RondaDrawer = ({
           </div>
         </ScrollArea>
 
-        {/* Deposit Button for Deposit Due State */}
-        {isDepositDue && (
-          <div className="flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+        {/* Join Button - Show if not a member */}
+        {shouldShowJoinButton && (
+          <div
+            className="flex w-full shrink-0 gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             <Button
               className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
               disabled={isDepositing}
@@ -824,7 +868,20 @@ export const RondaDrawer = ({
             <Button
               className="h-16 w-full cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
               disabled={isJoining}
-              onClick={handleJoin}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDecline();
+              }}
+            >
+              Decline
+            </Button>
+            <Button
+              className="h-16 flex-1 cursor-pointer rounded-[24px] bg-primary font-semibold text-[16px] text-white tracking-[-0.4px] shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              disabled={isJoining}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleJoin();
+              }}
             >
               {isJoining ? (
                 <>
@@ -834,16 +891,19 @@ export const RondaDrawer = ({
               ) : (
                 <>
                   <Users className="mr-2 size-5" strokeWidth={2} />
-                  Join Group
+                  Accept
                 </>
               )}
             </Button>
           </div>
         )}
 
-        {/* Verification Required - Show if not verified */}
-        {shouldShowDisclaimer && !isDepositDue && (
-          <div className="sticky bottom-0 flex w-full flex-col gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+        {/* Verification Required - Show if member but not verified */}
+        {shouldShowVerifyButton && (
+          <div
+            className="flex w-full shrink-0 flex-col gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             {/* Why Verification Card */}
             <div className="w-full rounded-2xl border border-[rgba(123,143,245,0.3)] bg-linear-to-b bg-primary/10 from-[rgba(123,143,245,0.1)] to-[rgba(123,143,245,0.05)] p-4">
               <div className="flex gap-3">
@@ -859,7 +919,7 @@ export const RondaDrawer = ({
                   <p className="text-[#6f7780] text-xs leading-[19.5px]">
                     Identity verification helps protect all members, prevents
                     fraud, and ensures everyone meets the circle requirements.
-                    This step is required before you can join.
+                    This step is required to participate in the group.
                   </p>
                 </div>
               </div>
@@ -868,12 +928,34 @@ export const RondaDrawer = ({
             {/* Verify Identity Button */}
             <Button
               className="h-[52px] w-full rounded-2xl bg-[#7b8ff5] font-semibold text-base text-white tracking-[-0.4px] hover:bg-[#7b8ff5]/90"
-              onClick={handleVerifyIdentity}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleVerifyIdentity();
+              }}
             >
               <div className="flex size-5 items-center justify-center rounded-full bg-white/20">
                 <Check className="size-4 text-white" />
               </div>
               Verify Identity Now
+            </Button>
+          </div>
+        )}
+
+        {/* Deposit Button - Show if member, verified, and deposit is due */}
+        {shouldShowDepositButton && (
+          <div
+            className="flex w-full shrink-0 border-[rgba(232,235,237,0.5)] border-t bg-white p-4"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Button
+              className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeposit?.();
+              }}
+            >
+              <Wallet className="mr-2 size-5" strokeWidth={2} />
+              Deposit {depositAmount} Now
             </Button>
           </div>
         )}
