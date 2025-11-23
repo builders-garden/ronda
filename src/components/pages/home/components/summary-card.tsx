@@ -30,7 +30,7 @@ export function SummaryCard({
       <p className="mt-4 text-center font-medium text-[11px] text-muted-foreground uppercase leading-tight tracking-[0.275px]">
         {label}
       </p>
-      <p className="font-bold text-[24px] text-muted tracking-[-0.6px]">
+      <p className="mt-1 font-bold text-[24px] text-muted tracking-[-0.6px]">
         {value}
       </p>
     </Card>

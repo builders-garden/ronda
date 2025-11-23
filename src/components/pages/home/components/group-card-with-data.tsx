@@ -93,7 +93,7 @@ export function GroupCardWithData({
     const recurringAmount = Number(
       formatUnits(groupInfo.recurringAmount ?? BigInt(0), USDC_DECIMALS)
     );
-    const weeklyAmount = `$${recurringAmount.toFixed(0)}`;
+    const weeklyAmount = recurringAmount.toFixed(0);
 
     // Calculate total weeks and current week
     // operationCounter represents the total number of operations (periods)

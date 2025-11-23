@@ -12,7 +12,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -92,6 +92,7 @@ type RondaDrawerProps = {
     hours: number;
     minutes: number;
   };
+  isDepositing?: boolean;
   // Members and activity
   members?: Member[];
   activities?: Activity[];
@@ -179,6 +180,7 @@ export const RondaDrawer = ({
   depositAmount: depositAmountProp,
   depositDeadline,
   timeRemaining: timeRemainingProp,
+  isDepositing,
   members,
   activities,
   groupId,
@@ -632,7 +634,7 @@ export const RondaDrawer = ({
 
               {/* Deposit Deadline Card */}
               {isDepositDue && (
-                <div className="flex flex-col gap-4 rounded-2xl border border-[rgba(245,158,66,0.3)] bg-linear-to-b from-[rgba(245,158,66,0.2)] to-[rgba(245,158,66,0.05)] p-5">
+                <div className="flex flex-col gap-4 rounded-2xl border border-[rgba(245,158,66,0.3)] bg-linear-to-b from-warning/20 to-warning/5 p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock className="size-5 text-zinc-950" strokeWidth={2} />
@@ -785,10 +787,33 @@ export const RondaDrawer = ({
           <div className="flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
             <Button
               className="h-16 w-full cursor-pointer rounded-[24px] bg-[#f59e42] font-semibold text-[16px] text-white tracking-[-0.4px] shadow-[0px_4px_6px_-4px_rgba(245,158,66,0.3),0px_10px_15px_-3px_rgba(245,158,66,0.3)] hover:bg-[#f59e42]/90"
+              disabled={isDepositing}
               onClick={onDeposit}
             >
-              <Wallet className="mr-2 size-5" strokeWidth={2} />
-              Deposit {depositAmount} Now
+              <AnimatePresence mode="wait">
+                {isDepositing ? (
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center"
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    key="depositing"
+                  >
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    className="flex items-center justify-center"
+                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    key="deposit-now"
+                  >
+                    <Wallet className="mr-2 size-5" strokeWidth={2} />
+                    Deposit {depositAmount} Now
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Button>
           </div>
         )}

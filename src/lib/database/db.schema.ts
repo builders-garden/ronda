@@ -163,6 +163,8 @@ export const participants = sqliteTable("participants", {
   userAddress: text("user_address").notNull(),
   accepted: integer("accepted", { mode: "boolean" }).default(false).notNull(),
   acceptedAt: integer("accepted_at", { mode: "timestamp_ms" }),
+  declined: integer("declined", { mode: "boolean" }).default(false).notNull(),
+  declinedAt: integer("declined_at", { mode: "timestamp_ms" }),
   paid: integer("paid", { mode: "boolean" }).default(false).notNull(),
   paidAt: integer("paid_at", { mode: "timestamp_ms" }),
   contributed: integer("contributed", {
@@ -170,6 +172,7 @@ export const participants = sqliteTable("participants", {
   })
     .notNull()
     .default(false),
+  contributedAt: integer("contributed_at", { mode: "timestamp_ms" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

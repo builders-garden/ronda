@@ -1,13 +1,19 @@
+import { getCallsStatus, sendCalls } from "@wagmi/core";
 import { AlertCircle, CheckCircle2, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { type Address, encodeFunctionData, erc20Abi } from "viem";
 import { RondaDrawer } from "@/components/shared/ronda-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { usePageContent } from "@/contexts/page-content-context";
+import { CELO_USDC_ADDRESS } from "@/lib/constants";
 import type { CirclesPageContent } from "@/lib/enum";
+import { RONDA_PROTOCOL_ABI } from "@/lib/smart-contracts";
+import { wagmiConfigMiniApp } from "@/lib/wagmi";
 import { cn } from "@/utils";
 
 type CircleStatus = "active" | "deposit_due" | "completed";
@@ -111,6 +117,7 @@ export function CircleCard({
 }: CircleCardProps) {
   const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
     usePageContent();
+  const [isDepositing, setIsDepositing] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const config = statusConfig[status];
   const progress = (currentWeek / totalWeeks) * 100;
@@ -131,15 +138,82 @@ export function CircleCard({
     setHasOpenedInitialDrawer,
   ]);
 
+  const handlePayNow = async () => {
+    setIsDepositing(true);
+    console.log("TEST address", address);
+    try {
+      // Encode approve function call
+      const approveData = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [address as Address, BigInt(Number(weeklyAmount) * 10 ** 6)],
+      });
+
+      // Encode deposit function call
+      const depositData = encodeFunctionData({
+        abi: RONDA_PROTOCOL_ABI,
+        functionName: "deposit",
+        args: [],
+      });
+
+      // Send both calls together
+      const result = await sendCalls(wagmiConfigMiniApp, {
+        calls: [
+          {
+            to: CELO_USDC_ADDRESS,
+            data: approveData,
+          },
+          {
+            to: address as Address,
+            data: depositData,
+          },
+        ],
+      });
+
+      const id = typeof result === "string" ? result : result.id;
+
+      // Poll for calls status
+      const checkCallsStatus = async () => {
+        try {
+          const callsStatus = await getCallsStatus(wagmiConfigMiniApp, { id });
+
+          if (callsStatus.status === "success") {
+            toast.success("Deposit successful");
+            setIsDepositing(false);
+          } else if (callsStatus.status === "pending") {
+            setTimeout(checkCallsStatus, 2000);
+          } else if (callsStatus.status === "failure") {
+            console.log("TEST callsStatus failure", callsStatus);
+            toast.error("Failed to deposit");
+            setIsDepositing(false);
+          }
+        } catch (error) {
+          console.log("TEST callsStatus error", error);
+          toast.error("Failed to deposit");
+          setIsDepositing(false);
+        }
+      };
+
+      // Start checking status after a short delay
+      setTimeout(checkCallsStatus, 2000);
+    } catch (error) {
+      console.log("TEST Error depositing:", error);
+      toast.error("Failed to deposit");
+      setIsDepositing(false);
+    }
+  };
+
   return (
     <RondaDrawer
       asChild
       contractAddress={address as `0x${string}`}
       createdDate={createdDate}
       groupId={groupId}
+      isDepositing={isDepositing}
       isDrawerOpen={isDrawerOpen}
       memberCount={memberCount}
       name={name}
+      onDeposit={handlePayNow}
       setIsDrawerOpen={setIsDrawerOpen}
     >
       <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
@@ -155,7 +229,7 @@ export function CircleCard({
                 <span className="font-normal">{memberCount} members</span>
               </div>
               <span className="text-muted-foreground/40">•</span>
-              <span className="font-normal">{weeklyAmount}/week</span>
+              <span className="font-normal">${weeklyAmount}/week</span>
             </div>
           </div>
           <Badge
