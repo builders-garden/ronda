@@ -234,6 +234,7 @@ function CreateRondaModalContent({
       );
 
       const params: DeployRondaProtocolParams = {
+        name: formData.roscaName,
         factoryAddress: env.NEXT_PUBLIC_RONDA_FACTORY_ADDRESS as Address,
         scopeSeed,
         verificationConfig,

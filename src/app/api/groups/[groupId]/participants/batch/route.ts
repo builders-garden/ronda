@@ -81,9 +81,6 @@ export async function POST(
       );
     }
 
-    console.log("groupId", groupId);
-    console.log("newParticipants", newParticipants);
-
     // Insert all new participants
     const insertedParticipants = await db
       .insert(participants)

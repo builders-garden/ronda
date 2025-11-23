@@ -1088,6 +1088,7 @@ export default function TestPage() {
                     return;
                   }
                   const params: DeployRondaProtocolParams = {
+                    name: "test-name",
                     factoryAddress,
                     scopeSeed: deploymentParams.scopeSeed || "ronda-test",
                     verificationConfig: deploymentParams.verificationConfig || {
