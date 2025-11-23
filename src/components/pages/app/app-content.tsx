@@ -1,19 +1,28 @@
 "use client";
 
 import { AnimatePresence } from "motion/react";
+import { useEffect } from "react";
 import { Website } from "@/components/pages/website";
 import { Navbar } from "@/components/shared/navbar";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
 import { usePageContent } from "@/contexts/page-content-context";
-import { PageContent } from "@/lib/enum";
+import {
+  type CirclesPageContent,
+  MainPageContent,
+  type PageContent,
+} from "@/lib/enum";
 import CirclesPage from "../circles";
 import ErrorPage from "../error";
 import HomePage from "../home";
 import LoadingPage from "../loading";
 import ProfilePage from "../profile";
 
-export function App() {
+export default function AppContent({
+  initialContent,
+}: {
+  initialContent?: PageContent;
+}) {
   const {
     user,
     isAuthenticated,
@@ -22,11 +31,18 @@ export function App() {
   } = useAuth();
   const { isInBrowser } = useEnvironment();
   // const { context } = useFarcaster();
-  const { pageContent } = usePageContent();
+  const { content, setContent, setHasOpenedInitialDrawer } = usePageContent();
 
   // check if the user is in mobile app (mini app)
   // const isInFarcasterMobile =
-  //   !isInBrowser && context?.client?.platformType === "mobile";
+  // !isInBrowser && context?.client?.platformType === "mobile";
+
+  useEffect(() => {
+    if (initialContent) {
+      setContent(initialContent.content);
+      setHasOpenedInitialDrawer(false);
+    }
+  }, [initialContent, setContent, setHasOpenedInitialDrawer]);
 
   // if the user is in browser, redirect to the website
   if (isInBrowser) {
@@ -45,11 +61,14 @@ export function App() {
           <LoadingPage key="loading" />
         ) : authError ? (
           <ErrorPage key="error" />
-        ) : pageContent === PageContent.HOME ? (
+        ) : content === MainPageContent.HOME ? (
           <HomePage key="home" />
-        ) : pageContent === PageContent.CIRCLES ? (
-          <CirclesPage key="circles" />
-        ) : pageContent === PageContent.PROFILE ? (
+        ) : content === MainPageContent.CIRCLES ? (
+          <CirclesPage
+            initialPageContent={initialContent as CirclesPageContent}
+            key="circles"
+          />
+        ) : content === MainPageContent.PROFILE ? (
           <ProfilePage key="profile" />
         ) : null}
       </AnimatePresence>

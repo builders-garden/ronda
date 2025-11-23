@@ -1,16 +1,19 @@
 import { AlertCircle, CheckCircle2, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RondaDrawer } from "@/components/shared/ronda-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { usePageContent } from "@/contexts/page-content-context";
+import type { CirclesPageContent } from "@/lib/enum";
 import { cn } from "@/utils";
 
 type CircleStatus = "active" | "deposit_due" | "completed";
 
 type CircleCardProps = {
+  address: string;
   name: string;
   memberCount: number;
   weeklyAmount: string;
@@ -21,6 +24,7 @@ type CircleCardProps = {
   lastPayout?: string;
   status: CircleStatus;
   avatars: string[];
+  initialContent?: CirclesPageContent;
 };
 
 const statusConfig: Record<
@@ -90,6 +94,7 @@ const statusConfig: Record<
 };
 
 export function CircleCard({
+  address,
   name,
   memberCount,
   weeklyAmount,
@@ -100,10 +105,29 @@ export function CircleCard({
   lastPayout,
   status,
   avatars,
+  initialContent,
 }: CircleCardProps) {
+  const { hasOpenedInitialDrawer, setHasOpenedInitialDrawer } =
+    usePageContent();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const config = statusConfig[status];
   const progress = (currentWeek / totalWeeks) * 100;
+
+  useEffect(() => {
+    if (
+      initialContent &&
+      initialContent?.circleAddress?.toLowerCase() === address.toLowerCase() &&
+      !hasOpenedInitialDrawer
+    ) {
+      setIsDrawerOpen(true);
+      setHasOpenedInitialDrawer(true);
+    }
+  }, [
+    initialContent,
+    address,
+    hasOpenedInitialDrawer,
+    setHasOpenedInitialDrawer,
+  ]);
 
   return (
     <RondaDrawer

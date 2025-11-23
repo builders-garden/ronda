@@ -1,12 +1,12 @@
 import { House, UsersRound } from "lucide-react";
 import { motion } from "motion/react";
 import { usePageContent } from "@/contexts/page-content-context";
-import { PageContent } from "@/lib/enum";
+import { MainPageContent } from "@/lib/enum";
 import { cn } from "@/utils";
 import { UserProfile } from "./user-profile";
 
 export const Navbar = () => {
-  const { pageContent, setPageContent } = usePageContent();
+  const { content, setContent } = usePageContent();
 
   return (
     <motion.div
@@ -18,13 +18,13 @@ export const Navbar = () => {
     >
       <motion.button
         className="cursor-pointer"
-        onClick={() => setPageContent(PageContent.HOME)}
+        onClick={() => setContent(MainPageContent.HOME)}
         whileTap={{ scale: 0.9 }}
       >
         <House
           className={cn(
             "size-[22px] transition-all duration-300",
-            pageContent === PageContent.HOME
+            content === MainPageContent.HOME
               ? "text-primary"
               : "text-muted-foreground"
           )}
@@ -33,13 +33,13 @@ export const Navbar = () => {
       </motion.button>
       <motion.button
         className="cursor-pointer"
-        onClick={() => setPageContent(PageContent.CIRCLES)}
+        onClick={() => setContent(MainPageContent.CIRCLES)}
         whileTap={{ scale: 0.9 }}
       >
         <UsersRound
           className={cn(
             "size-[22px] transition-all duration-300",
-            pageContent === PageContent.CIRCLES
+            content === MainPageContent.CIRCLES
               ? "text-primary"
               : "text-muted-foreground"
           )}
@@ -47,8 +47,8 @@ export const Navbar = () => {
         />
       </motion.button>
       <UserProfile
-        onClick={() => setPageContent(PageContent.PROFILE)}
-        pageContent={pageContent}
+        onClick={() => setContent(MainPageContent.PROFILE)}
+        pageContent={content}
       />
     </motion.div>
   );
