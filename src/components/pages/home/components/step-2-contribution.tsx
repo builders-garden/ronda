@@ -94,6 +94,7 @@ export function Step2Contribution() {
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={Frequency.DEMO}>Demo (60s)</SelectItem>
             <SelectItem value={Frequency.WEEKLY}>Weekly</SelectItem>
             <SelectItem value={Frequency.BIWEEKLY}>Bi-weekly</SelectItem>
             <SelectItem value={Frequency.MONTHLY}>Monthly</SelectItem>

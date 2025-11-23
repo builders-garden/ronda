@@ -1,7 +1,7 @@
 "use client";
 
 import { Banknote, CircleDollarSign, Star } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -40,14 +40,25 @@ function GroupStatsReader({
     true
   );
   const { data: isMember } = useIsMember(groupAddress, userAddress, true);
+  const prevStatsRef = useRef<GroupStats | null>(null);
 
   useEffect(() => {
     if (!(groupInfo && isMember)) {
-      onStatsReady(groupId, {
+      const stats = {
         totalDeposits: 0,
         isActive: false,
         payoutsReceived: 0,
-      });
+      };
+      // Only update if stats actually changed
+      if (
+        !prevStatsRef.current ||
+        prevStatsRef.current.totalDeposits !== stats.totalDeposits ||
+        prevStatsRef.current.isActive !== stats.isActive ||
+        prevStatsRef.current.payoutsReceived !== stats.payoutsReceived
+      ) {
+        prevStatsRef.current = stats;
+        onStatsReady(groupId, stats);
+      }
       return;
     }
 
@@ -67,11 +78,22 @@ function GroupStatsReader({
     // For now, we'll use a placeholder that can be enhanced later
     const payoutsReceived = 0;
 
-    onStatsReady(groupId, {
+    const stats = {
       totalDeposits,
       isActive,
       payoutsReceived,
-    });
+    };
+
+    // Only update if stats actually changed
+    if (
+      !prevStatsRef.current ||
+      prevStatsRef.current.totalDeposits !== stats.totalDeposits ||
+      prevStatsRef.current.isActive !== stats.isActive ||
+      prevStatsRef.current.payoutsReceived !== stats.payoutsReceived
+    ) {
+      prevStatsRef.current = stats;
+      onStatsReady(groupId, stats);
+    }
   }, [groupId, groupInfo, depositStatus, isMember, onStatsReady]);
 
   return null;
@@ -88,13 +110,26 @@ export function ProfileStats() {
     new Map()
   );
 
-  const handleStatsReady = (groupId: string, _stats: GroupStats) => {
-    setGroupStatsMap((prev) => {
-      const next = new Map(prev);
-      next.set(groupId, _stats);
-      return next;
-    });
-  };
+  const handleStatsReady = useCallback(
+    (groupId: string, _stats: GroupStats) => {
+      setGroupStatsMap((prev) => {
+        const existing = prev.get(groupId);
+        // Only update if stats actually changed
+        if (
+          existing &&
+          existing.totalDeposits === _stats.totalDeposits &&
+          existing.isActive === _stats.isActive &&
+          existing.payoutsReceived === _stats.payoutsReceived
+        ) {
+          return prev;
+        }
+        const next = new Map(prev);
+        next.set(groupId, _stats);
+        return next;
+      });
+    },
+    []
+  );
 
   const stats = useMemo(() => {
     if (!(userGroupsData?.groups && address)) {

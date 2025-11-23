@@ -196,7 +196,7 @@ export function CircleCard({
       onDeposit={handlePayNow}
       setIsDrawerOpen={setIsDrawerOpen}
     >
-      <Card className="flex w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
+      <Card className="flex h-[364px] max-h-[364px] min-h-[364px] w-full cursor-pointer flex-col gap-6 rounded-[24px] border border-border bg-white p-6 shadow-none">
         {/* Header: Name and Status Badge */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
@@ -249,10 +249,6 @@ export function CircleCard({
                 "flex h-9 cursor-pointer items-center justify-center rounded-2xl px-4 py-2 font-semibold text-[12px] text-white",
                 config.buttonBg
               )}
-              onClick={(e) => {
-                e.stopPropagation();
-                // Handle button action here (e.g., pay now, view summary)
-              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
