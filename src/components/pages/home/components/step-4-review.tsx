@@ -3,6 +3,7 @@
 import { Info, SquarePen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Genders } from "@/lib/enum";
 import { useCreateRonda } from "./create-ronda-context";
 
 type Step4ReviewProps = {
@@ -173,7 +174,7 @@ export function Step4Review({ onEditStep }: Step4ReviewProps) {
             <p className="text-[#6f7780] text-xs">Gender Verification</p>
             <p className="text-right font-semibold text-sm text-zinc-950">
               {formData.genderVerification
-                ? formData.allowedGenders === "all"
+                ? formData.allowedGenders === Genders.ALL
                   ? "All Genders"
                   : formData.allowedGenders.charAt(0).toUpperCase() +
                     formData.allowedGenders.slice(1)
