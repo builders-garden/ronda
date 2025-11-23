@@ -148,9 +148,11 @@ export function InvitationCardWithData({ group }: { group: Group }) {
   return (
     <InvitationCard
       avatars={cardData.avatars}
+      contractAddress={groupAddress}
       createdDate={cardData.createdDate}
       currentWeek={cardData.currentWeek}
       dueDate={cardData.dueDate}
+      groupId={group.id}
       memberCount={cardData.memberCount}
       name={cardData.name}
       nextPayout={cardData.nextPayout}

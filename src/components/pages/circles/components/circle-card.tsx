@@ -101,7 +101,6 @@ export function CircleCard({
   weeklyAmount,
   currentWeek,
   totalWeeks,
-  currentPot,
   nextPayout,
   lastPayout,
   status,
@@ -255,21 +254,6 @@ export function CircleCard({
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Current/Final Pot */}
-          <div className="flex flex-col items-end gap-1">
-            <span className="font-medium text-[12px] text-muted-foreground tracking-[0.3px]">
-              {config.potLabel}
-            </span>
-            <span
-              className={cn(
-                "font-bold text-[24px] leading-8 tracking-[-0.6px]",
-                config.potColor
-              )}
-            >
-              {currentPot}
-            </span>
           </div>
         </div>
 

@@ -1,10 +1,14 @@
+import sdk from "@farcaster/miniapp-sdk";
+import { getUniversalLink } from "@selfxyz/core";
+import { SelfAppBuilder } from "@selfxyz/qrcode";
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
+  Check,
   Clock,
   Loader2,
   type MessageCircle,
+  Shield,
   Users,
   Wallet,
 } from "lucide-react";
@@ -411,6 +415,79 @@ export const RondaDrawer = ({
     !isLoadingMember &&
     isVerified === false;
 
+  // Verify identity handler
+  const handleVerifyIdentity = async () => {
+    if (!(address && contractAddress)) {
+      toast.error("Missing required information for verification");
+      return;
+    }
+
+    try {
+      // Build disclosures based on group verification requirements
+      const disclosures: {
+        nationality?: boolean;
+        gender?: boolean;
+        date_of_birth?: boolean;
+        minimumAge?: number;
+        ofac?: boolean;
+      } = {};
+
+      if (groupInfo) {
+        const verificationType = groupInfo.verificationType;
+
+        // If verification type is not None (0), we need disclosures
+        if (verificationType !== 0) {
+          // Nationality is required if allowedNationalities is specified
+          if (
+            groupInfo.allowedNationalities &&
+            groupInfo.allowedNationalities.length > 0
+          ) {
+            disclosures.nationality = true;
+          }
+
+          // Gender is required if requiredGender is specified and not empty
+          if (groupInfo.requiredGender && groupInfo.requiredGender !== "") {
+            disclosures.gender = true;
+          }
+
+          // Date of birth is required if minAge is set
+          if (groupInfo.minAge && Number(groupInfo.minAge) > 0) {
+            disclosures.date_of_birth = true;
+            disclosures.minimumAge = Number(groupInfo.minAge);
+          }
+
+          // OFAC is always enabled when verification is required
+          disclosures.ofac = true;
+        }
+      }
+
+      // Generate the scope seed (consistent with contract deployment)
+      const scopeSeed = "ronda-test";
+
+      // Build the Self app
+      const app = new SelfAppBuilder({
+        appName: "Ronda Protocol",
+        scope: scopeSeed,
+        userId: address,
+        userIdType: "hex",
+        endpoint: contractAddress.toLowerCase(),
+        deeplinkCallback: `https://farcaster.xyz/miniapps/lnjFQwjNJNYE/revu-tunnel/circles/${contractAddress}?verified=true`,
+        endpointType: "celo",
+        userDefinedData: "Verify your identity to join the group",
+        disclosures,
+      }).build();
+
+      // Get the universal link
+      const deeplink = getUniversalLink(app);
+
+      // Open the Self app
+      await sdk.actions.openUrl(deeplink);
+    } catch (error) {
+      console.error("Error opening Self verification:", error);
+      toast.error("Failed to open verification");
+    }
+  };
+
   const countdownFormatted = formatCountdown(
     timeRemaining.days,
     timeRemaining.hours,
@@ -554,7 +631,7 @@ export const RondaDrawer = ({
 
               {/* Deposit Deadline Card */}
               {isDepositDue && (
-                <div className="flex flex-col gap-4 rounded-2xl border border-[rgba(245,158,66,0.3)] bg-gradient-to-b from-[rgba(245,158,66,0.2)] to-[rgba(245,158,66,0.05)] p-5">
+                <div className="flex flex-col gap-4 rounded-2xl border border-[rgba(245,158,66,0.3)] bg-linear-to-b from-[rgba(245,158,66,0.2)] to-[rgba(245,158,66,0.05)] p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Clock className="size-5 text-zinc-950" strokeWidth={2} />
@@ -738,27 +815,40 @@ export const RondaDrawer = ({
           </div>
         )}
 
-        {/* Disclaimer - Show if not verified */}
+        {/* Verification Required - Show if not verified */}
         {shouldShowDisclaimer && !isDepositDue && (
-          <div className="sticky bottom-0 flex w-full border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
-            <Card className="flex w-full flex-col gap-3 rounded-2xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.05)] p-4 shadow-none">
-              <div className="flex items-start gap-3">
-                <AlertCircle
-                  className="mt-0.5 size-5 shrink-0 text-red-500"
-                  strokeWidth={2}
-                />
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[14px] text-red-500 tracking-[-0.35px]">
-                    Verification Required
-                  </span>
-                  <span className="font-normal text-[#6f7780] text-[12px]">
-                    You cannot join this group because you haven't completed the
-                    required identity verification. Please verify your identity
-                    first.
-                  </span>
+          <div className="sticky bottom-0 flex w-full flex-col gap-3 border-[rgba(232,235,237,0.5)] border-t bg-white p-4">
+            {/* Why Verification Card */}
+            <div className="w-full rounded-2xl border border-[rgba(123,143,245,0.3)] bg-linear-to-b bg-primary/10 from-[rgba(123,143,245,0.1)] to-[rgba(123,143,245,0.05)] p-4">
+              <div className="flex gap-3">
+                <div className="mt-0.5 shrink-0">
+                  <div className="flex size-6 items-center justify-center rounded-full bg-[#7b8ff5]">
+                    <Shield className="size-4 text-white" />
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col gap-2">
+                  <p className="font-bold text-[#7b8ff5] text-sm tracking-[-0.35px]">
+                    Why Verification?
+                  </p>
+                  <p className="text-[#6f7780] text-xs leading-[19.5px]">
+                    Identity verification helps protect all members, prevents
+                    fraud, and ensures everyone meets the circle requirements.
+                    This step is required before you can join.
+                  </p>
                 </div>
               </div>
-            </Card>
+            </div>
+
+            {/* Verify Identity Button */}
+            <Button
+              className="h-[52px] w-full rounded-2xl bg-[#7b8ff5] font-semibold text-base text-white tracking-[-0.4px] hover:bg-[#7b8ff5]/90"
+              onClick={handleVerifyIdentity}
+            >
+              <div className="flex size-5 items-center justify-center rounded-full bg-white/20">
+                <Check className="size-4 text-white" />
+              </div>
+              Verify Identity Now
+            </Button>
           </div>
         )}
       </DrawerContent>

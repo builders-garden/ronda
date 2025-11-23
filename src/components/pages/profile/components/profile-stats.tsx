@@ -120,7 +120,7 @@ export function ProfileStats() {
           if (_stats.isActive) {
             activeCircles += 1;
           }
-          totalPayouts += stats.payoutsReceived;
+          totalPayouts += stats?.payoutsReceived;
         }
       }
     }
@@ -227,7 +227,7 @@ export function ProfileStats() {
           icon={Banknote}
           iconColor="text-primary"
           label="Payouts Received"
-          value={stats.payoutsReceived.toString()}
+          value={stats?.payoutsReceived.toString()}
         />
 
         {/* Active Circles */}

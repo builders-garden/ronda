@@ -19,6 +19,8 @@ The main card component that displays information about a circle (Ronda).
 - `lastPayout?`: string - Date of last payout (for completed circles)
 - `status`: "active" | "deposit_due" | "completed" - Circle status
 - `avatars`: string[] - Array of avatar URLs for members
+- `groupId?`: string - Backend group ID for fetching participants
+- `contractAddress`: Address - Smart contract address
 
 **Status Variants:**
 1. **deposit_due**: Yellow alert, shows "Deposit Due" with "Pay Now" button
@@ -29,6 +31,21 @@ The main card component that displays information about a circle (Ronda).
 - Clicking on the card opens the RondaDrawer with full circle details
 - Action buttons ("Pay Now", "View Summary") stop event propagation to prevent drawer opening
 - Each card maintains its own drawer state independently
+- The RondaDrawer fetches and displays real participant data from the backend
+
+### InvitationCardWithData
+
+A wrapper component that fetches on-chain and backend data for invitation cards.
+
+**Props:**
+- `group`: Group - Backend group object
+
+**Features:**
+- Fetches group info from smart contract
+- Fetches participants from backend API
+- Calculates pot amount, weekly amount, and progress
+- Passes all data to InvitationCard component
+- Uses RondaDrawer to display full group details with participant list
 
 ## Future Improvements
 
