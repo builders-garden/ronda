@@ -29,9 +29,11 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useGroupParticipantsWithStatus } from "@/hooks/use-group-participants-with-status";
+import { useMockPayout } from "@/hooks/use-mock-payout";
 import { useUpdateParticipant } from "@/hooks/use-update-participant";
 import { RondaStatus } from "@/lib/enum";
 import {
+  useDistributeFunds,
   useGetGroupInfoDetailed,
   useGetNextPayoutDeadline,
   useHasUserDepositedCurrentPeriod,
@@ -193,6 +195,7 @@ export const RondaDrawer = ({
   const [prevDepositStatus, setPrevDepositStatus] = useState<
     "idle" | "approving" | "depositing"
   >("idle");
+  const [isProcessingPayout, setIsProcessingPayout] = useState(false);
 
   // Fetch participants with their status from backend and blockchain
   const {
@@ -370,9 +373,6 @@ export const RondaDrawer = ({
     Boolean(contractAddress && address)
   );
 
-  console.log("isMember", isMember);
-  console.log("isVerified", isVerified);
-
   // Join group hook
   const {
     joinGroup,
@@ -380,6 +380,21 @@ export const RondaDrawer = ({
     isSuccess: joinSuccess,
     error: joinError,
   } = useJoinGroup(contractAddress);
+
+  // Distribute funds hook
+  const {
+    distributeFunds,
+    isPending: isDistributing,
+    isSuccess: distributeSuccess,
+    error: distributeError,
+  } = useDistributeFunds(contractAddress);
+
+  // Mock payout query - only enabled manually when needed
+  const { refetch: refetchMockPayout, isFetching: isFetchingMockPayout } =
+    useMockPayout({
+      address: contractAddress || "",
+      enabled: false, // Don't auto-fetch, only on manual trigger
+    });
 
   // Handle join success
   useEffect(() => {
@@ -424,6 +439,27 @@ export const RondaDrawer = ({
       console.error("Join error:", joinError);
     }
   }, [joinError]);
+
+  // Handle distribute funds success
+  useEffect(() => {
+    if (distributeSuccess) {
+      toast.success("Funds distributed successfully!");
+      setIsProcessingPayout(false);
+
+      // Refetch group data
+      refetchGroupInfo();
+      refetchParticipants();
+    }
+  }, [distributeSuccess, refetchGroupInfo, refetchParticipants]);
+
+  // Handle distribute funds error
+  useEffect(() => {
+    if (distributeError) {
+      toast.error("Failed to distribute funds. Please try again.");
+      console.error("Distribute error:", distributeError);
+      setIsProcessingPayout(false);
+    }
+  }, [distributeError]);
 
   // Handle deposit success - refetch all data when deposit completes
   useEffect(() => {
@@ -481,6 +517,55 @@ export const RondaDrawer = ({
   const handleDecline = () => {
     toast.info("You declined the invitation");
     setIsDrawerOpen(false);
+  };
+
+  // Handle mock payout
+  const handleMockPayout = async () => {
+    if (!contractAddress) {
+      toast.error("Contract address is required");
+      return;
+    }
+
+    setIsProcessingPayout(true);
+
+    try {
+      // Fetch eligible addresses from mock payout endpoint
+      const result = await refetchMockPayout();
+
+      if (result.data?.error) {
+        toast.error(result.data.error);
+        setIsProcessingPayout(false);
+        return;
+      }
+
+      if (result.data?.addresses && result.data.addresses.length > 0) {
+        // The API returns addresses as string[][], we need to flatten it
+        const eligibleAddresses = result.data.addresses as Address[];
+
+        if (eligibleAddresses.length === 0) {
+          toast.info("No eligible participants for payout");
+          setIsProcessingPayout(false);
+          return;
+        }
+
+        toast.info(
+          `Found ${eligibleAddresses.length} eligible participant(s). Distributing funds...`
+        );
+
+        console.log("eligibleAddresses", eligibleAddresses);
+
+        // Call distributeFunds with the addresses
+        // Note: setIsProcessingPayout(false) will be called in the success/error handlers
+        distributeFunds(eligibleAddresses);
+      } else {
+        toast.info("No eligible participants for payout");
+        setIsProcessingPayout(false);
+      }
+    } catch (error) {
+      console.error("Error processing mock payout:", error);
+      toast.error("Failed to process payout");
+      setIsProcessingPayout(false);
+    }
   };
 
   // Determine which button to show based on user state
@@ -670,7 +755,15 @@ export const RondaDrawer = ({
           className="w-full flex-1"
           scrollBarClassName="opacity-0 w-0"
         >
-          <div className="flex w-full flex-col gap-6 px-4 py-6">
+          <div
+            className={`flex w-full flex-col gap-6 px-4 py-6 ${
+              shouldShowJoinButton ||
+              shouldShowVerifyButton ||
+              shouldShowDepositButton
+                ? "pb-32"
+                : "pb-6"
+            }`}
+          >
             <Card className="flex w-full flex-col gap-6 rounded-[24px] border border-[rgba(232,235,237,0.5)] bg-white p-6 shadow-none">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col gap-2">
@@ -729,27 +822,86 @@ export const RondaDrawer = ({
               </div>
 
               {hasDeposited && address ? (
-                <div className="flex items-center justify-between rounded-2xl border border-[rgba(107,155,122,0.6)] bg-emerald-500/80 p-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex size-5 items-center justify-center rounded-full bg-[#6b9b7a]">
-                      <Check className="size-3.5 text-white" strokeWidth={3} />
+                <>
+                  <div className="flex items-center justify-between rounded-2xl border border-[rgba(107,155,122,0.6)] bg-emerald-500/20 p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-5 items-center justify-center rounded-full bg-[#6b9b7a]">
+                        <Check
+                          className="size-3.5 text-white"
+                          strokeWidth={3}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-[13px] text-zinc-950 tracking-[-0.35px]">
+                          {depositAmount} Deposited
+                        </span>
+                        <span className="font-normal text-[#6f7780] text-[11px]">
+                          Next deposit due {nextPayout}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-[13px] text-zinc-950 tracking-[-0.35px]">
-                        {depositAmount} Deposited
-                      </span>
-                      <span className="font-normal text-[#6f7780] text-[11px]">
-                        Next deposit due {nextPayout}
-                      </span>
-                    </div>
+                    <Badge
+                      className="rounded-full border-none bg-[rgba(107,155,122,0.2)] px-2 py-1 font-bold text-[#6b9b7a] text-[10px] uppercase tracking-[0.25px]"
+                      variant="outline"
+                    >
+                      Paid
+                    </Badge>
                   </div>
-                  <Badge
-                    className="rounded-full border-none bg-[rgba(107,155,122,0.2)] px-2 py-1 font-bold text-[#6b9b7a] text-[10px] uppercase tracking-[0.25px]"
-                    variant="outline"
+
+                  {/* Mock Payout Button */}
+                  <Button
+                    className="relative z-10 h-14 w-full cursor-pointer rounded-2xl border border-[rgba(123,143,245,0.3)] bg-[#7b8ff5] font-semibold text-[14px] text-white tracking-[-0.35px] hover:bg-[#7b8ff5]/90 disabled:opacity-70"
+                    disabled={
+                      isProcessingPayout ||
+                      isDistributing ||
+                      isFetchingMockPayout
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleMockPayout();
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    type="button"
                   >
-                    Paid
-                  </Badge>
-                </div>
+                    <AnimatePresence mode="wait">
+                      {isFetchingMockPayout ? (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="pointer-events-none flex items-center justify-center"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="fetching"
+                        >
+                          <Loader2 className="mr-2 size-5 animate-spin" />
+                          Fetching addresses...
+                        </motion.div>
+                      ) : isDistributing || isProcessingPayout ? (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="pointer-events-none flex items-center justify-center"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="distributing"
+                        >
+                          <Loader2 className="mr-2 size-5 animate-spin" />
+                          Distributing funds...
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          animate={{ opacity: 1 }}
+                          className="pointer-events-none flex items-center justify-center"
+                          exit={{ opacity: 0 }}
+                          initial={{ opacity: 0 }}
+                          key="mock-payout"
+                        >
+                          <Wallet className="mr-2 size-5" strokeWidth={2} />
+                          Mock Payout
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </>
               ) : null}
 
               {/* Deposit Deadline Card */}
