@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 import { GroupCardWithData } from "@/components/pages/home/components/group-card-with-data";
@@ -27,6 +27,11 @@ function GroupStatusChecker({
   ) => void;
 }) {
   const groupAddress = group.groupAddress as Address | undefined;
+  const lastStatusRef = useRef<{
+    isMember: boolean;
+    isInvited: boolean;
+  } | null>(null);
+
   const { data: isMember } = useIsMember(
     groupAddress,
     userAddress,
@@ -40,7 +45,24 @@ function GroupStatusChecker({
 
   useEffect(() => {
     if (isMember !== undefined || isInvited !== undefined) {
-      onStatusReady(group.id, Boolean(isMember), Boolean(isInvited));
+      const currentStatus = {
+        isMember: Boolean(isMember),
+        isInvited: Boolean(isInvited),
+      };
+
+      // Only call onStatusReady if status has changed
+      if (
+        !lastStatusRef.current ||
+        lastStatusRef.current.isMember !== currentStatus.isMember ||
+        lastStatusRef.current.isInvited !== currentStatus.isInvited
+      ) {
+        lastStatusRef.current = currentStatus;
+        onStatusReady(
+          group.id,
+          currentStatus.isMember,
+          currentStatus.isInvited
+        );
+      }
     }
   }, [group.id, isMember, isInvited, onStatusReady]);
 
@@ -69,28 +91,27 @@ export default function CirclesPage({
     Map<string, "active" | "deposit_due" | "completed">
   >(new Map());
 
-  const handleStatusReady = (
-    groupId: string,
-    isMember: boolean,
-    isInvited: boolean
-  ) => {
-    setGroupStatuses((prev) => {
-      const next = new Map(prev);
-      next.set(groupId, { isMember, isInvited });
-      return next;
-    });
-  };
+  const handleStatusReady = useCallback(
+    (groupId: string, isMember: boolean, isInvited: boolean) => {
+      setGroupStatuses((prev) => {
+        const next = new Map(prev);
+        next.set(groupId, { isMember, isInvited });
+        return next;
+      });
+    },
+    []
+  );
 
-  const handleCircleStatusReady = (
-    groupId: string,
-    status: "active" | "deposit_due" | "completed"
-  ) => {
-    setCircleStatuses((prev) => {
-      const next = new Map(prev);
-      next.set(groupId, status);
-      return next;
-    });
-  };
+  const handleCircleStatusReady = useCallback(
+    (groupId: string, status: "active" | "deposit_due" | "completed") => {
+      setCircleStatuses((prev) => {
+        const next = new Map(prev);
+        next.set(groupId, status);
+        return next;
+      });
+    },
+    []
+  );
 
   // Filter groups by status
   const { activeGroups, completedGroups, invitedGroups } = useMemo(() => {
